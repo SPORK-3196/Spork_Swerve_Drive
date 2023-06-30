@@ -22,15 +22,16 @@ public class RobotContainer {
 
   private final SwerveSubsystem swerveSubsystem = new SwerveSubsystem();
 
-  private final static XboxController primaryController = new XboxController(Constants.kDriverControllerPort);
-
+  public static final XboxController primaryController = new XboxController(0);
+  public static double RJSX_PRIM = primaryController.getRightX();
+  public static double RJSY_PRIM = primaryController.getRightY();
 
   public RobotContainer() {
     swerveSubsystem.setDefaultCommand(new DriveWithJoy(swerveSubsystem,
-    () -> -primaryController.getRawAxis(Constants.kDriverYAxis),
-    () -> primaryController.getRawAxis(Constants.kDriverXAxis),
-    () -> primaryController.getRawAxis(Constants.kDriverRotAxis),
-    () -> !primaryController.getRawButton(Constants.kDriverFieldOrientedButtonIdx)));
+    () -> -primaryController.getLeftX(),
+    () -> primaryController.getLeftY(),
+    () -> primaryController.getRightX(),
+    () -> !primaryController.getAButton()));
     configureBindings();
 }
 

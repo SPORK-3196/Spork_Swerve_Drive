@@ -8,6 +8,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 
 public class SwerveSubsystem extends SubsystemBase {
     private final SwerveModule frontLeft = new SwerveModule(
@@ -36,6 +37,7 @@ public class SwerveSubsystem extends SubsystemBase {
         Constants.kBackLeftDriveAbsoluteEncoderPort,
         Constants.kBackLeftDriveAbsoluteEncoderOffsetRad,
         Constants.kBackLeftDriveAbsoluteEncoderReversed);
+
     private final SwerveModule backRight = new SwerveModule(
         Constants.kBackRightDriveMotorPort,
         Constants.kBackRightTurningMotorPort,
@@ -56,6 +58,10 @@ public class SwerveSubsystem extends SubsystemBase {
             }
         }).start();
     };
+
+    public double getRotationalInput(){
+        return Math.atan2(RobotContainer.RJSX_PRIM, RobotContainer.RJSY_PRIM);
+    }
 
     public void zeroHeading(){
         gyro.setYaw(0);
