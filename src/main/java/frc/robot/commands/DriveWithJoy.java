@@ -2,10 +2,13 @@ package frc.robot.commands;
 
 import java.util.function.Supplier;
 
+import com.ctre.phoenix.sensors.PigeonIMU;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
 import frc.robot.subsystems.SwerveSubsystem;
@@ -17,6 +20,7 @@ public class DriveWithJoy extends CommandBase{
     private final Supplier<Double> xspdFunction, yspdFunction, TurningspdFunction;
     private final Supplier<Boolean> fieldOrientedFunction;
     private final SlewRateLimiter xLimiter, yLimiter, turnLimiter;
+    private PigeonIMU gyro = new PigeonIMU(Constants.PigeonIMUId);
     PIDController rotPidController;
     public double rotationalInput = Math.atan2(RobotContainer.RJSX_PRIM,RobotContainer.RJSY_PRIM );
 
@@ -40,6 +44,7 @@ public class DriveWithJoy extends CommandBase{
 
     @Override
     public void initialize(){
+        ((Gyro) gyro).reset();
         
     }
 
@@ -73,9 +78,22 @@ public class DriveWithJoy extends CommandBase{
         SwerveModuleState[] moduleStates = Constants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds);
 
         swerveSubsystem.setModuleStates(moduleStates);
+
+        turnSetpoint();
         
-        
-        rotPidController.setSetpoint(rotationalInput);
+        //rotPidController.setSetpoint(rotationalInput);        
+    }
+
+    public double getRotationalInput(){
+        return rotationalInput;
+    }
+
+    public double getHeading(){
+        return gyro.getYaw();
+    }
+
+    public void turnSetpoint(){
+        rotPidController.calculate(getHeading(), rotationalInput);
     }
 
     @Override
