@@ -20,7 +20,7 @@ public class DriveWithJoy extends CommandBase{
         Supplier<Double> xspdFunction, Supplier<Double> yspdFunction, Supplier<Double> TurningspdFunction,
         Supplier<Boolean> fieldOrientedFunction){
         this.swerveSubsystem = swerveSubsystem;
-        this.xspdFunction = xspdFunction;
+        this.xspdFunction = //xspdFunction;
         this.yspdFunction = yspdFunction;
         this.TurningspdFunction = TurningspdFunction;
         this.fieldOrientedFunction = fieldOrientedFunction;
@@ -70,5 +70,4 @@ public class DriveWithJoy extends CommandBase{
     public boolean isFinished(){
         return false;
     }
-
 }

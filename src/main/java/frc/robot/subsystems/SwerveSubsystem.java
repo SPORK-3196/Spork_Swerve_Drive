@@ -2,8 +2,11 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix.sensors.PigeonIMU;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -36,6 +39,7 @@ public class SwerveSubsystem extends SubsystemBase {
         Constants.kBackLeftDriveAbsoluteEncoderPort,
         Constants.kBackLeftDriveAbsoluteEncoderOffsetRad,
         Constants.kBackLeftDriveAbsoluteEncoderReversed);
+        
     private final SwerveModule backRight = new SwerveModule(
         Constants.kBackRightDriveMotorPort,
         Constants.kBackRightTurningMotorPort,
@@ -46,6 +50,12 @@ public class SwerveSubsystem extends SubsystemBase {
         Constants.kBackRightDriveAbsoluteEncoderReversed);
 
     private PigeonIMU gyro = new PigeonIMU(Constants.PigeonIMUId);
+    private final SwerveDriveOdometry odometry = new SwerveDriveOdometry(Constants.kDriveKinematics, getRotation2d(), new SwerveModulePosition[]{
+        frontLeft.getPosition(),
+        frontRight.getPosition(),
+        backLeft.getPosition(),
+        backRight.getPosition()
+    });
 
     public SwerveSubsystem(){
         new Thread(() -> {
@@ -70,8 +80,27 @@ public class SwerveSubsystem extends SubsystemBase {
         return Rotation2d.fromDegrees(getHeading());
     }
 
+    public Pose2d getPose2d(){
+        return odometry.getPoseMeters();
+    }
+
+    public void resetOdometry(){
+        odometry.resetPosition(getRotation2d(), new SwerveModulePosition[]{
+            frontLeft.getPosition(),
+            frontRight.getPosition(),
+            backLeft.getPosition(),
+            backRight.getPosition()
+            }, getPose2d());
+    }
+
     @Override
     public void periodic(){
+        odometry.update(getRotation2d(), new SwerveModulePosition[]{
+        frontLeft.getPosition(),
+        frontRight.getPosition(),
+        backLeft.getPosition(),
+        backRight.getPosition()
+        });
         SmartDashboard.putNumber("robot heading", getHeading());
     }
 
@@ -92,5 +121,4 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     
-
 }
