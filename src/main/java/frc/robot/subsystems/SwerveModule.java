@@ -1,6 +1,5 @@
 package frc.robot.subsystems;
 
-import com.revrobotics.AnalogInput;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -10,7 +9,6 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.Constants;
 
 public class SwerveModule {
@@ -68,7 +66,7 @@ public class SwerveModule {
     }
 
     public double getAbsoluteEncoderRad(){
-        double angle = ((AnalogInput) absoluteEncoder).getVoltage() / RobotController.getVoltage5V();
+        double angle = absoluteEncoder.getOffset();
         angle *= 2.0 * Math.PI;
         angle -= absoluteEncoderOffsetRad;
         return angle * (absoluteEncoderReversed ? -1.0 : 1.0);
