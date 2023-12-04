@@ -18,12 +18,12 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.XboxController.Axis;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import frc.robot.Constants.speedconst;
 import frc.robot.commands.DriveWithJoy;
 import frc.robot.commands.FieldOriented;
 import frc.robot.commands.LightingModes.Spork;
@@ -51,12 +51,12 @@ public class RobotContainer {
   private final Lights lighting = new Lights();
 
   public RobotContainer() {
-    configureBindings();
     swerveSubsystem.setDefaultCommand(new DriveWithJoy(swerveSubsystem,
-    () -> -primaryController.getRawAxis(Axis.kLeftY.value),
-    () -> primaryController.getRawAxis(Axis.kLeftX.value),
-    () -> primaryController.getRawAxis(Axis.kRightX.value),
+    () -> PLJS_Y,
+    () -> PLJS_X,
+    () -> PRJS_X,
     () -> !fieldOriented));
+    configureBindings();
 }
 
   private void configureBindings() {
@@ -65,7 +65,7 @@ public class RobotContainer {
     Y_Button.whileTrue(new InstantCommand(swerveSubsystem::zeroHeading,swerveSubsystem));
   }
   public Command getAutonomousCommand(){
-      TrajectoryConfig config = new TrajectoryConfig(Constants.kMaxSpeedMetersPerSecond, Constants.kMaxAccelerationMetersPerSecondSquared)
+      TrajectoryConfig config = new TrajectoryConfig(speedconst.kMaxSpeedMetersPerSecond, speedconst.kMaxAccelerationMetersPerSecondSquared)
       .setKinematics(Constants.kDriveKinematics);
       Trajectory traj = TrajectoryGenerator.generateTrajectory(new Pose2d(0,0, new Rotation2d(0)), List.of(
         new Translation2d(1,0),
@@ -73,9 +73,9 @@ public class RobotContainer {
       ), new Pose2d(1,-1, new Rotation2d(180)) , config);
       
 
-      PIDController xController = new PIDController(Constants.kPXController, 0, 0);
-      PIDController yController = new PIDController(Constants.kPYController, 0, 0);
-      ProfiledPIDController thetaController = new ProfiledPIDController(Constants.kPThetaController, PLJS_Y, PLJS_X, Constants.kThetaControllerConstraints);
+      PIDController xController = new PIDController(speedconst.kPXController, 0, 0);
+      PIDController yController = new PIDController(speedconst.kPYController, 0, 0);
+      ProfiledPIDController thetaController = new ProfiledPIDController(speedconst.kPThetaController, PLJS_Y, PLJS_X, Constants.kThetaControllerConstraints);
       thetaController.enableContinuousInput(-Math.PI, Math.PI); 
 
 

@@ -7,6 +7,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
+import frc.robot.Constants.speedconst;
 import frc.robot.subsystems.SwerveSubsystem;
 
 public class DriveWithJoy extends CommandBase{
@@ -20,13 +21,13 @@ public class DriveWithJoy extends CommandBase{
         Supplier<Double> xspdFunction, Supplier<Double> yspdFunction, Supplier<Double> TurningspdFunction,
         Supplier<Boolean> fieldOrientedFunction){
         this.swerveSubsystem = swerveSubsystem;
-        this.xspdFunction = xspdFunction;
+        this.xspdFunction = //xspdFunction;
         this.yspdFunction = yspdFunction;
         this.TurningspdFunction = TurningspdFunction;
         this.fieldOrientedFunction = fieldOrientedFunction;
-        this.xLimiter = new SlewRateLimiter(Constants.kTeleDriveMaxAccelerationUnitsPerSecond);
-        this.yLimiter = new SlewRateLimiter(Constants.kTeleDriveMaxAccelerationUnitsPerSecond);
-        this.turnLimiter = new SlewRateLimiter(Constants.kTeleDriveMaxAngularAccelerationUnitsPerSecond);
+        this.xLimiter = new SlewRateLimiter(speedconst.kTeleDriveMaxAccelerationUnitsPerSecond);
+        this.yLimiter = new SlewRateLimiter(speedconst.kTeleDriveMaxAccelerationUnitsPerSecond);
+        this.turnLimiter = new SlewRateLimiter(speedconst.kTeleDriveMaxAngularAccelerationUnitsPerSecond);
         addRequirements(swerveSubsystem);
     }
 
@@ -45,9 +46,9 @@ public class DriveWithJoy extends CommandBase{
         ySpeed = Math.abs(ySpeed) > Constants.kDeadband ? ySpeed : 0.0;
         turnSpeed = Math.abs(turnSpeed) > Constants.kDeadband ? turnSpeed : 0.0;
 
-        xSpeed = xLimiter.calculate(xSpeed) * Constants.kTeleDriveMaxAccelerationUnitsPerSecond;
-        ySpeed = yLimiter.calculate(ySpeed) * Constants.kTeleDriveMaxAccelerationUnitsPerSecond;
-        turnSpeed = turnLimiter.calculate(turnSpeed) * Constants.kTeleDriveMaxAngularAccelerationUnitsPerSecond;
+        xSpeed = xLimiter.calculate(xSpeed) * speedconst.kTeleDriveMaxAccelerationUnitsPerSecond;
+        ySpeed = yLimiter.calculate(ySpeed) * speedconst.kTeleDriveMaxAccelerationUnitsPerSecond;
+        turnSpeed = turnLimiter.calculate(turnSpeed) * speedconst.kTeleDriveMaxAngularAccelerationUnitsPerSecond;
 
         ChassisSpeeds chassisSpeeds;
         if (fieldOrientedFunction.get()){
