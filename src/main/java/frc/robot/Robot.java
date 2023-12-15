@@ -39,7 +39,6 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().run();
 
 
-    //TODO 
     OI.modules.backLeftAngle = m_swerve.backLeft.getTurnPos();
     OI.modules.backRightAngle = m_swerve.backRight.getTurnPos();
     OI.modules.frontLeftAngle = m_swerve.frontLeft.getTurnPos();

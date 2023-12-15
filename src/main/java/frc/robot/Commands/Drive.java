@@ -29,9 +29,9 @@ public class Drive extends CommandBase{
     }
 //TODO change max velocity values 
     public void execute(){
-        double xSpeed = m_Swerve.deadband(translationXSupplier.getAsDouble()) * 1;
+        double xSpeed = m_Swerve.deadband(translationXSupplier.getAsDouble()) * 2;//m/s
         double ySpeed = m_Swerve.deadband(translationYSupplier.getAsDouble()) * 1;
-        double thetaSpeed = m_Swerve.deadband(rotationSupplier.getAsDouble()) * 1;
+        double thetaSpeed = m_Swerve.deadband(rotationSupplier.getAsDouble()) * 2;
 
 
 //Robot

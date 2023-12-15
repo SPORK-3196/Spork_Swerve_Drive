@@ -62,7 +62,6 @@ public class Swerve extends SubsystemBase{
         zeroGyro();
 
     }
-//TODO try deg if this doesnt work
     public double getFrontLeftAngle(){
         return frontLeft.getTurnPos();
     }
