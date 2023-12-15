@@ -21,14 +21,15 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     configureBindings();
-    m_swerve.setModZero();
+    m_swerve.zeroGyro();
+
   }
   
 
   private void configureBindings() {
     m_swerve.setDefaultCommand(new Drive(m_swerve,
      () -> -modifyAxis(Driver.getLeftX()),
-      () -> modifyAxis(Driver.getLeftY()),
+      () -> -modifyAxis(Driver.getLeftY()),
        () -> -modifyAxis(Driver.getRightX())));
 
   }
@@ -36,6 +37,21 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
+
+    OI.modules.backLeftAngle = m_swerve.backLeft.getSteerAngle();
+    OI.modules.backRightAngle = m_swerve.backRight.getSteerAngle();
+    OI.modules.frontLeftAngle = m_swerve.frontLeft.getSteerAngle();
+    OI.modules.frontRightAngle = m_swerve.frontRight.getSteerAngle();
+
+
+    OI.modules.backLeftAngleEntry.setDouble(OI.modules.backLeftAngle);
+    OI.modules.backRightAngleEntry.setDouble(OI.modules.backRightAngle);
+    OI.modules.frontLeftAngleEntry.setDouble(OI.modules.frontLeftAngle);
+    OI.modules.frontRightAngleEntry.setDouble(OI.modules.frontRightAngle);
+
+
+    
+    
   }
 
   @Override
@@ -67,6 +83,7 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+    m_swerve.zeroModules();
   }
 
   @Override
@@ -97,8 +114,8 @@ public class Robot extends TimedRobot {
     // Deadband
     value = deadband(value, 0.10);
 
-    // Square the axis
-    //value = Math.copySign(value * value, value);
+    
+    value = Math.copySign(value * value, value);
 
     return value;
       
