@@ -1,92 +1,153 @@
-
 package frc.robot.Subsys;
 
 import com.kauailabs.navx.frc.AHRS;
-import com.swervedrivespecialties.swervelib.Mk4iSwerveModuleHelper;
-import com.swervedrivespecialties.swervelib.SdsModuleConfigurations;
-import com.swervedrivespecialties.swervelib.SwerveModule;
 
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.SerialPort.Port;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.Constants.kSwerve;
+import frc.robot.Utils.MK4i;
 
 public class Swerve extends SubsystemBase{
+    private final SwerveModulePosition[] positions;
+    private final SwerveDrivePoseEstimator estimator;
+    private final AHRS gyro;
+    private ChassisSpeeds speeds = new ChassisSpeeds(0,0,0);
 
-    public AHRS gyro = new AHRS(Port.kMXP);
-
-    public SwerveModule frontLeft; 
-    public SwerveModule backLeft; 
-    public SwerveModule frontRight; 
-    public SwerveModule backRight; 
-
-    private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds(0, 0, 0);
-
-    public static final double MAX_VELOCITY_METERS_PER_SECOND = 6380.0 / 60.0 *
-    SdsModuleConfigurations.MK4_L1.getDriveReduction() *
-    SdsModuleConfigurations.MK4_L1.getWheelDiameter() * Math.PI;
-
-    private static final int MAX_VOLTAGE = 10;
-
-
-    public Swerve(){
-        frontLeft = Mk4iSwerveModuleHelper.createNeo(Mk4iSwerveModuleHelper.GearRatio.L2,
-        Constants.kSwerve.frontLeftDrive,
-        Constants.kSwerve.frontLeftSteer,
-        Constants.kSwerve.kFrontLeftDriveAbsoluteEncoderPort,
-        kSwerve.Offsets.frontLeft);
-        
-        backLeft = Mk4iSwerveModuleHelper.createNeo(Mk4iSwerveModuleHelper.GearRatio.L2,
-        Constants.kSwerve.backLeftDrive,
-        Constants.kSwerve.backLeftSteer,
-        Constants.kSwerve.kBackLeftDriveAbsoluteEncoderPort,
-        kSwerve.Offsets.frontLeft);
-        
-        frontRight = Mk4iSwerveModuleHelper.createNeo(Mk4iSwerveModuleHelper.GearRatio.L2,
+    public final MK4i frontLeft = new MK4i(
+        Constants.kSwerve.frontLeftDrive, 
+        Constants.kSwerve.frontLeftSteer, 
+        Constants.kSwerve.kFrontLeftDriveAbsoluteEncoderPort, 
+        true, 
+        Constants.kSwerve.Offsets.frontLeft, 
+        false);
+      public final MK4i frontRight = new MK4i(
         Constants.kSwerve.frontRightDrive,
         Constants.kSwerve.frontRightSteer,
-        Constants.kSwerve.kFrontRightDriveAbsoluteEncoderPort,
-        kSwerve.Offsets.frontLeft);
-
-        backRight = Mk4iSwerveModuleHelper.createNeo(Mk4iSwerveModuleHelper.GearRatio.L2,
+        Constants.kSwerve.kFrontRightDriveAbsoluteEncoderPort, 
+        false, 
+        Constants.kSwerve.Offsets.frontRight, 
+        false);
+      public final MK4i backLeft = new MK4i(
+        Constants.kSwerve.backLeftDrive,
+        Constants.kSwerve.backLeftSteer,
+        Constants.kSwerve.kBackLeftDriveAbsoluteEncoderPort, 
+        true, 
+        Constants.kSwerve.Offsets.backLeft, 
+        false);
+      public final MK4i backRight = new MK4i(
         Constants.kSwerve.backRightDrive,
         Constants.kSwerve.backRightSteer,
-        Constants.kSwerve.kBackRightDriveAbsoluteEncoderPort,
-        kSwerve.Offsets.frontLeft);    
+        Constants.kSwerve.kBackRightDriveAbsoluteEncoderPort, 
+        false, 
+        Constants.kSwerve.Offsets.backRight, 
+        false);
+
+    public Swerve()
+    {
+        gyro = new AHRS(Port.kMXP);
+        estimator = new SwerveDrivePoseEstimator(
+        Constants.kSwerve.DRIVE_KINEMATICS,
+        getGyroHeading(),
+        getPositions(),
+        new Pose2d(4, 4, new Rotation2d()));
+        positions = getPositions();
+        updateSwerveModulePositions();
+        zeroGyro();
+
+    }
+//TODO try deg if this doesnt work
+    public double getFrontLeftAngle(){
+        return frontLeft.getTurnPos();
     }
 
-    public void drive(ChassisSpeeds chassisSpeeds){
-        m_chassisSpeeds = chassisSpeeds;
-    }
-    
-
-    @Override
-    public void periodic(){
-      SwerveModuleState[] states = kSwerve.DRIVE_KINEMATICS.toSwerveModuleStates(m_chassisSpeeds);
-      SwerveDriveKinematics.desaturateWheelSpeeds(states, MAX_VELOCITY_METERS_PER_SECOND);
-  
-      frontLeft.set(states[0].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[0].angle.getRadians());
-      frontRight.set(states[1].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[2].angle.getRadians());
-      backLeft.set(states[2].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[1].angle.getRadians());
-      backRight.set(states[3].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[3].angle.getRadians());
+    public double getBackLeftAngle(){
+        return backLeft.getTurnPos();
     }
 
-    public Rotation2d getGyroRotation(){
-      return Rotation2d.fromDegrees(gyro.getYaw());
+    public double getBackRightAngle(){
+        return backRight.getTurnPos();
     }
 
-    public void zeroModules(){
-      frontLeft.set(0, 0);
-      frontRight.set(0, 0);
-      backLeft.set(0, 0);
-      backRight.set(0, 0);
+    public double getFrontRightAngle(){
+        return frontRight.getTurnPos();
+    }
+
+
+    public SwerveModulePosition[] getPositions() {
+        return new SwerveModulePosition[]{
+            frontLeft.getModPos(),
+            frontRight.getModPos(),
+            backLeft.getModPos(),
+            backRight.getModPos()
+        };
     }
 
     public void zeroGyro(){
-      gyro.zeroYaw();
+        gyro.reset();
     }
-  }
+
+    public Rotation2d getGyroHeading(){
+        return Rotation2d.fromDegrees(gyro.getYaw());
+    }
+
+    public Pose2d getPose(){
+        return estimator.getEstimatedPosition();
+    }
+
+    public void resetEstimator(Pose2d pose){
+
+        estimator.resetPosition(getGyroHeading(), positions, pose);
+    }
+
+    //use with vision ONLY
+    public void resetEstimatorWithVision(Pose2d visPose, double timestamp){
+        estimator.addVisionMeasurement(visPose, timestamp);
+    }
+
+    //TODO change max speed
+    //P.S. quite important
+    public void Drive(SwerveModuleState... desiredStates){
+        SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, 2);
+        frontLeft.setstates(desiredStates[0]);
+        frontRight.setstates(desiredStates[1]);
+        backLeft.setstates(desiredStates[2]);
+        backRight.setstates(desiredStates[3]);
+    }
+
+    public ChassisSpeeds getChassisSpeeds(){
+        speeds = Constants.kSwerve.DRIVE_KINEMATICS.toChassisSpeeds(
+            frontLeft.getstate(),
+            frontRight.getstate(),
+            backLeft.getstate(),
+            backRight.getstate()
+        );
+        return speeds;
+    }
+
+    public void stopAll(){
+        Drive(
+            Constants.kSwerve.DRIVE_KINEMATICS.toSwerveModuleStates(new ChassisSpeeds())
+        );
+    }
+
+    public double deadband(double value){
+        if(Math.abs(value)<= 0.1){
+            return 0;
+        }
+        return value;
+    }
+
+    public void updateSwerveModulePositions() {
+        positions[0] = frontLeft.getModPos();
+        positions[1] = frontRight.getModPos();
+        positions[2] = backLeft.getModPos();
+        positions[3] = backRight.getModPos();
+    }
+}

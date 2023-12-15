@@ -38,10 +38,12 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
 
-    OI.modules.backLeftAngle = m_swerve.backLeft.getSteerAngle();
-    OI.modules.backRightAngle = m_swerve.backRight.getSteerAngle();
-    OI.modules.frontLeftAngle = m_swerve.frontLeft.getSteerAngle();
-    OI.modules.frontRightAngle = m_swerve.frontRight.getSteerAngle();
+
+    //TODO 
+    OI.modules.backLeftAngle = m_swerve.backLeft.getTurnPos();
+    OI.modules.backRightAngle = m_swerve.backRight.getTurnPos();
+    OI.modules.frontLeftAngle = m_swerve.frontLeft.getTurnPos();
+    OI.modules.frontRightAngle = m_swerve.frontRight.getTurnPos();
 
 
     OI.modules.backLeftAngleEntry.setDouble(OI.modules.backLeftAngle);
@@ -83,7 +85,6 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    m_swerve.zeroModules();
   }
 
   @Override
