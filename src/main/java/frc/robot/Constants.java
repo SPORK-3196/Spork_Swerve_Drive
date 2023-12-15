@@ -14,11 +14,18 @@ public class Constants{
 //TODO offsets
         public static class Offsets {
 
-            public static double frontLeft = -Math.toDegrees(0);
-            public static double backLeft = -Math.toDegrees(0);
-            public static double backRight = -Math.toDegrees(0);
-            public static double frontRight = -Math.toDegrees(0);
+            public static double frontLeft = -Math.toDegrees(-0.24);
+            public static double backLeft = -Math.toDegrees(0.54);
+            public static double backRight = -Math.toDegrees(1.97);
+            public static double frontRight = -Math.toDegrees(-1.2);
           }
+
+        public static final double steeringEncoderPositionFactor = (2 * Math.PI); // radians
+        public static final double steeringEncoderVelocityFactor = (2 * Math.PI) / 60.0; // rad/s
+    
+         public static final double steeringEncoderPositionPIDMinInput = 0; // radians
+        public static final double steeringEncoderPositionPIDMaxInput = steeringEncoderPositionFactor; // radians
+        
 
         public static final int MaxSpeedMetersPerSecond = 2;
         public static final int MaxTranslationX = 2;
