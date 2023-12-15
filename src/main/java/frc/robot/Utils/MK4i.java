@@ -10,36 +10,21 @@ import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import frc.robot.Constants.kSwerve;
 
 
 public class MK4i {
 
-    private ProfiledPIDController DrivePID = new ProfiledPIDController(
-    1,
-    0,
-    0,
-    new TrapezoidProfile.Constraints(2, 1));
+    private SparkMaxPIDController DrivePID; 
     private SparkMaxPIDController TurnPID;
-//     new ProfiledPIDController(
-// 2.5, 
-//     0,
-//     0,
-//     new TrapezoidProfile.Constraints(3*Math.PI, 6*Math.PI));
     private CANSparkMax DriveMotor;
     private CANSparkMax TurnMotor; 
     private RelativeEncoder DriveEncoder;
     private WPI_CANCoder Cancoder;
-    private SimpleMotorFeedforward DriveFF = new SimpleMotorFeedforward(
-    0.7, 
-    2.17, 
-    0.406);
     private SwerveModuleState moduleState = new SwerveModuleState(); 
     private SwerveModulePosition modulePosition = new SwerveModulePosition();
     private double chassisOffset;
@@ -54,7 +39,11 @@ public class MK4i {
         DriveMotor.setIdleMode(IdleMode.kBrake);
         DriveMotor.setInverted(DriveReversed);
         DriveEncoder = DriveMotor.getEncoder();
-        
+        DrivePID = DriveMotor.getPIDController();
+
+        DrivePID.setP(1);
+        DrivePID.setD(0.02);
+
 //Turn
         TurnMotor = new CANSparkMax(TurnMotorID, MotorType.kBrushless);
         TurnMotor.setInverted(true);
@@ -65,7 +54,7 @@ public class MK4i {
 
         TurnPID = TurnMotor.getPIDController();
 
-        TurnPID.setP(1);
+        TurnPID.setP(0.5);
         TurnPID.setD(0);
         
         TurnPID.setOutputRange(-1, 1);
@@ -117,20 +106,18 @@ public class MK4i {
 
         desiredState = SwerveModuleState.optimize(desiredState, new Rotation2d(turnPos));
 
-        if( Math.abs(desiredState.speedMetersPerSecond)< 0.10 && Math.abs(desiredState.angle.getRadians() - turnPos) < 0.10){
+
+        if( Math.abs(desiredState.speedMetersPerSecond - driveVelocity)< 0.10 &&
+        Math.abs(desiredState.angle.getRadians() - turnPos) < 0.10){
             stopModule();
             return;
         }
 
-        final double Drive = DrivePID.calculate(driveVelocity,desiredState.speedMetersPerSecond)
-         + DriveFF.calculate(desiredState.speedMetersPerSecond);
+        DrivePID.setReference(desiredState.speedMetersPerSecond, ControlType.kVelocity);
 
-
-        DriveMotor.setVoltage(Drive);
         TurnPID.setReference(
             desiredState.angle.minus(new Rotation2d(chassisOffset)).getRadians(),
             ControlType.kPosition);
-        
     }
 
     public void stopModule(){

@@ -62,7 +62,8 @@ public class Swerve extends SubsystemBase{
         new Pose2d(4, 4, new Rotation2d()));
         positions = getPositions();
         updateSwerveModulePositions();
-        zeroGyro();
+
+        
 
     }
     public double getFrontLeftAngle(){
@@ -80,7 +81,6 @@ public class Swerve extends SubsystemBase{
     public double getFrontRightAngle(){
         return frontRight.getTurnPos();
     }
-
 
     public SwerveModulePosition[] getPositions() {
         return new SwerveModulePosition[]{
@@ -129,8 +129,7 @@ public class Swerve extends SubsystemBase{
             backLeft.getstate(),
             backRight.getstate()
         );
-        speeds = limiter.calculate(speeds);
-        return speeds;
+        return speeds; 
     }
 
     public void stopAll(){
