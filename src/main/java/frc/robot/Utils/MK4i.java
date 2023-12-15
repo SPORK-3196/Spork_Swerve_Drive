@@ -9,6 +9,8 @@ import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -24,6 +26,7 @@ public class MK4i {
     private WPI_CANCoder Cancoder;
     private SwerveModuleState moduleState = new SwerveModuleState(); 
     private SwerveModulePosition modulePosition = new SwerveModulePosition();
+    private SimpleMotorFeedforward DriveFF;
     private double chassisOffset;
     
 
@@ -31,7 +34,13 @@ public class MK4i {
     public MK4i(int DriveMotorID, int TurnMotorID, int CancoderID, boolean DriveReversed,
     double encoderOffset, boolean encoderReversed){
         chassisOffset = encoderOffset;
+
+
 //Drive
+        DriveFF = new SimpleMotorFeedforward(
+            0.04642, 
+            2.6757, 
+            0.11358);
         DriveMotor = new CANSparkMax(DriveMotorID, MotorType.kBrushless);
         DriveMotor.setIdleMode(IdleMode.kBrake);
         DriveMotor.setInverted(DriveReversed);
@@ -39,7 +48,7 @@ public class MK4i {
         DrivePID = DriveMotor.getPIDController();
 
         DrivePID.setP(0.5);
-        DrivePID.setD(0.02);
+        DrivePID.setD(0.01);
 
 //Turn
         TurnMotor = new CANSparkMax(TurnMotorID, MotorType.kBrushless);
@@ -52,7 +61,7 @@ public class MK4i {
         TurnPID = TurnMotor.getPIDController();
 
         TurnPID.setP(0.5);
-        TurnPID.setD(0);
+        TurnPID.setD(0.01);
         
         TurnPID.setOutputRange(-1, 1);
         TurnPID.setPositionPIDWrappingEnabled(true);
@@ -65,12 +74,11 @@ public class MK4i {
         Cancoder.configMagnetOffset(encoderOffset); //in Deg
         Cancoder.configSensorDirection(encoderReversed);
 
-        resetEncoders();
+        resetEncoder();
     }
 
-    public void resetEncoders(){
+    public void resetEncoder(){
         DriveEncoder.setPosition(0);
-        TurnPID.setReference(0, ControlType.kPosition);
     }
 
     public double getTurnPos(){
@@ -110,7 +118,7 @@ public class MK4i {
             return;
         }
 
-        DrivePID.setReference(desiredState.speedMetersPerSecond, ControlType.kVelocity);
+        DriveMotor.setVoltage(DriveFF.calculate(driveVelocity, desiredState.speedMetersPerSecond));
 
         TurnPID.setReference(
             desiredState.angle.minus(new Rotation2d(chassisOffset)).getRadians(),

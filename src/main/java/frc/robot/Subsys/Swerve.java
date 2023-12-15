@@ -59,7 +59,7 @@ public class Swerve extends SubsystemBase{
         Constants.kSwerve.DRIVE_KINEMATICS,
         getGyroHeading(),
         getPositions(),
-        new Pose2d(4, 4, new Rotation2d()));
+        new Pose2d(0, 0, new Rotation2d()));
         positions = getPositions();
         updateSwerveModulePositions();
     }
@@ -136,7 +136,7 @@ public class Swerve extends SubsystemBase{
     }
 
     public double deadband(double value){
-        if(Math.abs(value)<= 0.1){
+        if(Math.abs(value)<= 0.15){
             return 0;
         }
         return value;
