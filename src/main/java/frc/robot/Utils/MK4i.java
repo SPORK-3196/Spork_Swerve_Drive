@@ -4,6 +4,9 @@ import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.WPI_CANCoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkMaxAlternateEncoder;
+import com.revrobotics.SparkMaxPIDController;
+import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
@@ -13,48 +16,63 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import frc.robot.Constants.kSwerve;
+
 
 public class MK4i {
 
     private ProfiledPIDController DrivePID = new ProfiledPIDController(
-    0.1,
+    1,
     0,
     0,
-    new TrapezoidProfile.Constraints(1, 0.5));
-    private ProfiledPIDController TurnPID = new ProfiledPIDController(
-    0.15, 
-    0,
-    0,
-    new TrapezoidProfile.Constraints(3*Math.PI, 6*Math.PI));
+    new TrapezoidProfile.Constraints(2, 1));
+    private SparkMaxPIDController TurnPID;
+//     new ProfiledPIDController(
+// 2.5, 
+//     0,
+//     0,
+//     new TrapezoidProfile.Constraints(3*Math.PI, 6*Math.PI));
     private CANSparkMax DriveMotor;
     private CANSparkMax TurnMotor; 
     private RelativeEncoder DriveEncoder;
     private WPI_CANCoder Cancoder;
-
     private SimpleMotorFeedforward DriveFF = new SimpleMotorFeedforward(
-    0.1, 
-    0, 
-    0);
-    private SimpleMotorFeedforward TurnFF = new SimpleMotorFeedforward(
-    0.1, 
-    0, 
-    0);
+    0.7, 
+    2.17, 
+    0.406);
     private SwerveModuleState moduleState = new SwerveModuleState(); 
     private SwerveModulePosition modulePosition = new SwerveModulePosition();
+    private double chassisOffset;
     
 
 
     public MK4i(int DriveMotorID, int TurnMotorID, int CancoderID, boolean DriveReversed,
     double encoderOffset, boolean encoderReversed){
+        chassisOffset = encoderOffset;
 //Drive
         DriveMotor = new CANSparkMax(DriveMotorID, MotorType.kBrushless);
         DriveMotor.setIdleMode(IdleMode.kBrake);
         DriveMotor.setInverted(DriveReversed);
         DriveEncoder = DriveMotor.getEncoder();
+        
 //Turn
         TurnMotor = new CANSparkMax(TurnMotorID, MotorType.kBrushless);
         TurnMotor.setInverted(true);
-        TurnPID.enableContinuousInput(-Math.PI, Math.PI);
+        TurnMotor.getAlternateEncoder(SparkMaxAlternateEncoder.Type.kQuadrature, CancoderID);
+
+        TurnMotor.setSmartCurrentLimit(20);
+        TurnMotor.setSecondaryCurrentLimit(35);
+
+        TurnPID = TurnMotor.getPIDController();
+
+        TurnPID.setP(1);
+        TurnPID.setD(0);
+        
+        TurnPID.setOutputRange(-1, 1);
+        TurnPID.setPositionPIDWrappingEnabled(true);
+        TurnPID.setPositionPIDWrappingMaxInput(kSwerve.steeringEncoderPositionPIDMaxInput);
+        TurnPID.setPositionPIDWrappingMinInput(kSwerve.steeringEncoderPositionPIDMinInput);  
+
 //Cancoder
         Cancoder = new WPI_CANCoder(CancoderID);
         Cancoder.configAbsoluteSensorRange(AbsoluteSensorRange.Signed_PlusMinus180);
@@ -66,7 +84,7 @@ public class MK4i {
 
     public void resetEncoders(){
         DriveEncoder.setPosition(0);
-        TurnPID.calculate(Cancoder.getAbsolutePosition(), 0);
+        TurnPID.setReference(0, ControlType.kPosition);
     }
 
     public double getTurnPos(){
@@ -98,18 +116,21 @@ public class MK4i {
         double turnPos = getTurnPos();
 
         desiredState = SwerveModuleState.optimize(desiredState, new Rotation2d(turnPos));
-        if( Math.abs(desiredState.speedMetersPerSecond)< 0.10 && Math.abs(desiredState.angle.getRadians() - turnPos) < 0.05){
+
+        if( Math.abs(desiredState.speedMetersPerSecond)< 0.10 && Math.abs(desiredState.angle.getRadians() - turnPos) < 0.10){
             stopModule();
             return;
         }
 
         final double Drive = DrivePID.calculate(driveVelocity,desiredState.speedMetersPerSecond)
          + DriveFF.calculate(desiredState.speedMetersPerSecond);
-        final double Turn = TurnPID.calculate(turnPos, desiredState.angle.getRadians())
-         + TurnFF.calculate(TurnPID.getSetpoint().velocity);
+
 
         DriveMotor.setVoltage(Drive);
-        TurnMotor.setVoltage(Turn);
+        TurnPID.setReference(
+            desiredState.angle.minus(new Rotation2d(chassisOffset)).getRadians(),
+            ControlType.kPosition);
+        
     }
 
     public void stopModule(){
