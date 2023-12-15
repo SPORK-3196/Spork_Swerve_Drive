@@ -62,9 +62,6 @@ public class Swerve extends SubsystemBase{
         new Pose2d(4, 4, new Rotation2d()));
         positions = getPositions();
         updateSwerveModulePositions();
-
-        
-
     }
     public double getFrontLeftAngle(){
         return frontLeft.getTurnPos();

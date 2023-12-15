@@ -9,8 +9,6 @@ import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -18,7 +16,6 @@ import frc.robot.Constants.kSwerve;
 
 
 public class MK4i {
-
     private SparkMaxPIDController DrivePID; 
     private SparkMaxPIDController TurnPID;
     private CANSparkMax DriveMotor;
@@ -41,7 +38,7 @@ public class MK4i {
         DriveEncoder = DriveMotor.getEncoder();
         DrivePID = DriveMotor.getPIDController();
 
-        DrivePID.setP(1);
+        DrivePID.setP(0.5);
         DrivePID.setD(0.02);
 
 //Turn
