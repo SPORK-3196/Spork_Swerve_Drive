@@ -27,11 +27,10 @@ public class Drive extends CommandBase{
 
         addRequirements(m_Swerve);
     }
-//TODO change max velocity values 
     public void execute(){
-        double xSpeed = m_Swerve.deadband(translationXSupplier.getAsDouble()) * 2;//m/s
-        double ySpeed = m_Swerve.deadband(translationYSupplier.getAsDouble()) * 1;
-        double thetaSpeed = m_Swerve.deadband(rotationSupplier.getAsDouble()) * 2;
+        double xSpeed = m_Swerve.deadband(translationXSupplier.getAsDouble()) * Constants.kSwerve.MaxTranslationX;//m/s
+        double ySpeed = m_Swerve.deadband(translationYSupplier.getAsDouble()) * Constants.kSwerve.MaxTranslationY;
+        double thetaSpeed = m_Swerve.deadband(rotationSupplier.getAsDouble()) * Constants.kSwerve.Maxrotation;
 
 
 //Robot

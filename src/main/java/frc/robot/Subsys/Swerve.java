@@ -113,10 +113,9 @@ public class Swerve extends SubsystemBase{
         estimator.addVisionMeasurement(visPose, timestamp);
     }
 
-    //TODO change max speed
     //P.S. quite important
     public void Drive(SwerveModuleState... desiredStates){
-        SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, 2);
+        SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates,Constants.kSwerve.MaxSpeedMetersPerSecond);
         frontLeft.setstates(desiredStates[0]);
         frontRight.setstates(desiredStates[1]);
         backLeft.setstates(desiredStates[2]);
@@ -130,6 +129,7 @@ public class Swerve extends SubsystemBase{
             backLeft.getstate(),
             backRight.getstate()
         );
+        speeds = limiter.calculate(speeds);
         return speeds;
     }
 

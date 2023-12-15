@@ -19,18 +19,18 @@ public class MK4i {
     private ProfiledPIDController DrivePID = new ProfiledPIDController(
     0.1,
     0,
-    0.1,
+    0,
     new TrapezoidProfile.Constraints(1, 0.5));
     private ProfiledPIDController TurnPID = new ProfiledPIDController(
-    0.1, 
+    0.15, 
     0,
-    0.1,
+    0,
     new TrapezoidProfile.Constraints(3*Math.PI, 6*Math.PI));
     private CANSparkMax DriveMotor;
     private CANSparkMax TurnMotor; 
     private RelativeEncoder DriveEncoder;
     private WPI_CANCoder Cancoder;
-    //TODO ff values 
+
     private SimpleMotorFeedforward DriveFF = new SimpleMotorFeedforward(
     0.1, 
     0, 

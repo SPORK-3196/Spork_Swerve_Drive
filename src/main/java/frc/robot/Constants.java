@@ -10,7 +10,8 @@ public class Constants{
     private static final double DRIVETRAIN_TRACKWIDTH_METERS = Units.inchesToMeters(25);
 
     public static class kSwerve{
-
+      
+//TODO offsets
         public static class Offsets {
 
             public static double frontLeft = -Math.toDegrees(0);
@@ -18,6 +19,11 @@ public class Constants{
             public static double backRight = -Math.toDegrees(0);
             public static double frontRight = -Math.toDegrees(0);
           }
+
+        public static final int MaxSpeedMetersPerSecond = 2;
+        public static final int MaxTranslationX = 2;
+        public static final int MaxTranslationY = 2;
+        public static final int Maxrotation = 1;
         
         public static final int frontLeftDrive = 1;
         public static final int frontLeftSteer =5;
