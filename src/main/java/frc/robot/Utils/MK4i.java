@@ -14,6 +14,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.Constants.kSwerve;
 
 
@@ -27,20 +28,17 @@ public class MK4i {
     private SwerveModuleState moduleState = new SwerveModuleState(); 
     private SwerveModulePosition modulePosition = new SwerveModulePosition();
     private SimpleMotorFeedforward DriveFF;
-    private double chassisOffset;
-    
 
+    private double simDrivePosition = 0;
+    
 
     public MK4i(int DriveMotorID, int TurnMotorID, int CancoderID, boolean DriveReversed,
     double encoderOffset, boolean encoderReversed){
-        chassisOffset = encoderOffset;
-
-
 //Drive
         DriveFF = new SimpleMotorFeedforward(
-            0.04642, 
-            2.6757, 
-            0.11358);
+            0.046, 
+            2.67, 
+            0.113);
         DriveMotor = new CANSparkMax(DriveMotorID, MotorType.kBrushless);
         DriveMotor.setIdleMode(IdleMode.kBrake);
         DriveMotor.setInverted(DriveReversed);
@@ -48,7 +46,7 @@ public class MK4i {
         DrivePID = DriveMotor.getPIDController();
 
         DrivePID.setP(0.5);
-        DrivePID.setD(0.01);
+        DrivePID.setD(0);
 
 //Turn
         TurnMotor = new CANSparkMax(TurnMotorID, MotorType.kBrushless);
@@ -61,9 +59,9 @@ public class MK4i {
         TurnPID = TurnMotor.getPIDController();
 
         TurnPID.setP(0.5);
-        TurnPID.setD(0.01);
+        TurnPID.setD(0);
         
-        TurnPID.setOutputRange(-1, 1);
+        TurnPID.setOutputRange(-Math.PI, Math.PI);
         TurnPID.setPositionPIDWrappingEnabled(true);
         TurnPID.setPositionPIDWrappingMaxInput(kSwerve.steeringEncoderPositionPIDMaxInput);
         TurnPID.setPositionPIDWrappingMinInput(kSwerve.steeringEncoderPositionPIDMinInput);  
@@ -74,6 +72,8 @@ public class MK4i {
         Cancoder.configMagnetOffset(encoderOffset); //in Deg
         Cancoder.configSensorDirection(encoderReversed);
 
+        if (!RobotBase.isReal()) moduleState.angle = new Rotation2d(Cancoder.getAbsolutePosition());
+
         resetEncoder();
     }
 
@@ -81,8 +81,9 @@ public class MK4i {
         DriveEncoder.setPosition(0);
     }
 
-    public double getTurnPos(){
-        return Math.toRadians(Cancoder.getAbsolutePosition());
+    public Rotation2d getTurnPos(){
+        if (RobotBase.isSimulation()) return moduleState.angle;
+        return new Rotation2d(Math.toRadians(Cancoder.getAbsolutePosition()));
     }
 
     public double getDrivePos(){
@@ -95,34 +96,32 @@ public class MK4i {
 
     public SwerveModuleState getstate(){
         moduleState.speedMetersPerSecond = getDriveVelocity();
-        moduleState.angle = new Rotation2d(getTurnPos());
+        moduleState.angle = getTurnPos();
         return moduleState;
     }
 
     public SwerveModulePosition getModPos(){
         modulePosition.distanceMeters = getDrivePos();
-        modulePosition.angle = new Rotation2d(getTurnPos());
+        modulePosition.angle = getTurnPos();
         return modulePosition;
     }
 
     public void setstates(SwerveModuleState desiredState){
         double driveVelocity = getDriveVelocity();
-        double turnPos = getTurnPos();
+    
 
-        desiredState = SwerveModuleState.optimize(desiredState, new Rotation2d(turnPos));
+        desiredState = SwerveModuleState.optimize(desiredState, getTurnPos());
 
 
         if( Math.abs(desiredState.speedMetersPerSecond - driveVelocity)< 0.10 &&
-        Math.abs(desiredState.angle.getRadians() - turnPos) < 0.10){
+        Math.abs(desiredState.angle.getRadians() - getTurnPos().getRadians()) < 0.10){
             stopModule();
             return;
         }
 
         DriveMotor.setVoltage(DriveFF.calculate(driveVelocity, desiredState.speedMetersPerSecond));
 
-        TurnPID.setReference(
-            desiredState.angle.minus(new Rotation2d(chassisOffset)).getRadians(),
-            ControlType.kPosition);
+        TurnPID.setReference(desiredState.angle.getRadians(), ControlType.kPosition);
     }
 
     public void stopModule(){

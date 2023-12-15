@@ -22,6 +22,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     configureBindings();
 
+    
   }
   
 
@@ -38,10 +39,10 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().run();
 
 
-    OI.modules.backLeftAngle = m_swerve.backLeft.getTurnPos();
-    OI.modules.backRightAngle = m_swerve.backRight.getTurnPos();
-    OI.modules.frontLeftAngle = m_swerve.frontLeft.getTurnPos();
-    OI.modules.frontRightAngle = m_swerve.frontRight.getTurnPos();
+    OI.modules.backLeftAngle = m_swerve.backLeft.getTurnPos().getRadians();
+    OI.modules.backRightAngle = m_swerve.backRight.getTurnPos().getRadians();
+    OI.modules.frontLeftAngle = m_swerve.frontLeft.getTurnPos().getRadians();
+    OI.modules.frontRightAngle = m_swerve.frontRight.getTurnPos().getRadians();
 
 
     OI.modules.backLeftAngleEntry.setDouble(OI.modules.backLeftAngle);
@@ -70,7 +71,7 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
     }
-    m_swerve.zeroGyro();
+
   }
 
   @Override
@@ -84,7 +85,7 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    m_swerve.zeroGyro();
+    
   }
 
   @Override

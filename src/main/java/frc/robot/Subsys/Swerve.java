@@ -13,10 +13,8 @@ import edu.wpi.first.wpilibj.SerialPort.Port;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Utils.MK4i;
-import frc.robot.Utils.limiter;
 
 public class Swerve extends SubsystemBase{
-    private final limiter limiter;
     private final SwerveModulePosition[] positions;
     private final SwerveDrivePoseEstimator estimator;
     private final AHRS gyro;
@@ -53,7 +51,7 @@ public class Swerve extends SubsystemBase{
 
     public Swerve()
     {
-        limiter = new limiter(0.02 * 9.81, 2);
+        
         gyro = new AHRS(Port.kMXP);
         estimator = new SwerveDrivePoseEstimator(
         Constants.kSwerve.DRIVE_KINEMATICS,
@@ -64,19 +62,19 @@ public class Swerve extends SubsystemBase{
         updateSwerveModulePositions();
     }
     public double getFrontLeftAngle(){
-        return frontLeft.getTurnPos();
+        return frontLeft.getTurnPos().getRadians();
     }
 
     public double getBackLeftAngle(){
-        return backLeft.getTurnPos();
+        return backLeft.getTurnPos().getRadians();
     }
 
     public double getBackRightAngle(){
-        return backRight.getTurnPos();
+        return backRight.getTurnPos().getRadians();
     }
 
     public double getFrontRightAngle(){
-        return frontRight.getTurnPos();
+        return frontRight.getTurnPos().getRadians();
     }
 
     public SwerveModulePosition[] getPositions() {
