@@ -12,10 +12,11 @@ public class Constants{
     public static class kSwerve{
 
         public static class Offsets {
-            public static double frontLeft = -Math.toRadians(6.04+180);
-            public static double backLeft = -Math.toRadians(0.55);
-            public static double backRight = Math.toRadians(1.96);
-            public static double frontRight = Math.toRadians(4.54);
+
+            public static double frontLeft = -Math.toDegrees(0);
+            public static double backLeft = -Math.toDegrees(0);
+            public static double backRight = -Math.toDegrees(0);
+            public static double frontRight = -Math.toDegrees(0);
           }
         
         public static final int frontLeftDrive = 1;
