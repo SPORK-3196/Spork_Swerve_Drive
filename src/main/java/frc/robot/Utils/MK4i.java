@@ -30,12 +30,13 @@ public class MK4i {
     private CANSparkMax TurnMotor; 
     private RelativeEncoder DriveEncoder;
     private WPI_CANCoder Cancoder;
+    //TODO ff values 
     private SimpleMotorFeedforward DriveFF = new SimpleMotorFeedforward(
-    0, 
+    0.1, 
     0, 
     0);
     private SimpleMotorFeedforward TurnFF = new SimpleMotorFeedforward(
-    0, 
+    0.1, 
     0, 
     0);
     private SwerveModuleState moduleState = new SwerveModuleState(); 
