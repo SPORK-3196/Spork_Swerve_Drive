@@ -18,16 +18,6 @@ public class OI {
         public static GenericEntry frontLeftAngleEntry = modules.add("frontLeftAngle",0.0).getEntry();
         public static GenericEntry backRightAngleEntry = modules.add("backRightAngle",0.0).getEntry();
         public static GenericEntry backLeftAngleEntry = modules.add("backLeftAngle",0.0).getEntry();
-
-        public static double frontRightTarget = 0.0;
-        public static double backRightTarget= 0.0;
-        public static double frontLeftTarget = 0.0;
-        public static double backLeftTarget = 0.0;
-
-        public static GenericEntry frontRightTargetEntry = modules.add("frontRightAngle",0.0).getEntry();
-        public static GenericEntry frontLeftTargetEntry = modules.add("frontLeftAngle",0.0).getEntry();
-        public static GenericEntry backRightTargetEntry = modules.add("backRightAngle",0.0).getEntry();
-        public static GenericEntry backLeftTargetEntry = modules.add("backLeftAngle",0.0).getEntry();
     }
     
 }
