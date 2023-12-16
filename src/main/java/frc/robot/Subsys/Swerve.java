@@ -112,7 +112,7 @@ private Rotation2d gyroOffset;
         );
         estimator.update(getGyroHeading(), getPositions());
         estimator.addVisionMeasurement(getPose(), getGyroYawRate());
-        
+        log();
       }
 
     public double getFrontLeftAngle(){
@@ -220,6 +220,7 @@ private Rotation2d gyroOffset;
         };
       }
 
+//Glitch 
     private void log() {
         frontLeft.updateNT();
         backLeft.updateNT();

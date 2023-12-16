@@ -22,13 +22,15 @@ import frc.robot.Constants.kSwerve;
 
 
 public class MK4i {
-
+//Glitch
     private final NetworkTable moduleTable;
     private final DoublePublisher goalVelPub;
     private final DoublePublisher goalHeadingPub;
     private final DoublePublisher measVelPub;
     private final DoublePublisher measHeadingPub;
     private final DoubleArrayPublisher voltagesPub;
+
+
     
     private SparkMaxPIDController DrivePID; 
     private SparkMaxPIDController TurnPID;
@@ -41,7 +43,6 @@ public class MK4i {
     private SimpleMotorFeedforward DriveFF;
 
     private double simDrivePosition = 0;
-    
 
     public MK4i(int DriveMotorID, int TurnMotorID, int CancoderID, boolean DriveReversed,
     double encoderOffset, boolean encoderReversed, NetworkTable table){
@@ -62,7 +63,6 @@ public class MK4i {
 //Turn
         TurnMotor = new CANSparkMax(TurnMotorID, MotorType.kBrushless);
         TurnMotor.setInverted(true);
-        TurnMotor.getAlternateEncoder(SparkMaxAlternateEncoder.Type.kQuadrature, CancoderID);
 
         TurnMotor.setSmartCurrentLimit(20);
         TurnMotor.setSecondaryCurrentLimit(35);
@@ -82,8 +82,8 @@ public class MK4i {
         Cancoder.configAbsoluteSensorRange(AbsoluteSensorRange.Signed_PlusMinus180);
         Cancoder.configMagnetOffset(encoderOffset); //in Deg
         Cancoder.configSensorDirection(encoderReversed);
-
-        if (!RobotBase.isReal()) moduleState.angle = new Rotation2d(Cancoder.getAbsolutePosition());
+//Glitch
+        if (!RobotBase.isReal()){ moduleState.angle = new Rotation2d(Cancoder.getAbsolutePosition());}
 
         moduleTable = table;
         goalVelPub = moduleTable.getDoubleTopic("Goal Velocity").publish();
@@ -154,7 +154,7 @@ public class MK4i {
         DriveMotor.setVoltage(0);
         TurnMotor.set(0);
     }
-
+//Glitch
     public void updateNT() {
         goalVelPub.set(moduleState.speedMetersPerSecond);
         goalHeadingPub.set(moduleState.angle.getRadians());
