@@ -3,22 +3,33 @@ package frc.robot.Utils;
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.WPI_CANCoder;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkMaxAlternateEncoder;
-import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkMaxAlternateEncoder;
+import com.revrobotics.SparkMaxPIDController;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.DoubleArrayPublisher;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.Constants.kSwerve;
 
 
 public class MK4i {
+
+    private final NetworkTable moduleTable;
+    private final DoublePublisher goalVelPub;
+    private final DoublePublisher goalHeadingPub;
+    private final DoublePublisher measVelPub;
+    private final DoublePublisher measHeadingPub;
+    private final DoubleArrayPublisher voltagesPub;
+    
     private SparkMaxPIDController DrivePID; 
     private SparkMaxPIDController TurnPID;
     private CANSparkMax DriveMotor;
@@ -33,7 +44,7 @@ public class MK4i {
     
 
     public MK4i(int DriveMotorID, int TurnMotorID, int CancoderID, boolean DriveReversed,
-    double encoderOffset, boolean encoderReversed){
+    double encoderOffset, boolean encoderReversed, NetworkTable table){
 //Drive
         DriveFF = new SimpleMotorFeedforward(
             0.046, 
@@ -74,11 +85,18 @@ public class MK4i {
 
         if (!RobotBase.isReal()) moduleState.angle = new Rotation2d(Cancoder.getAbsolutePosition());
 
-        resetEncoder();
+        moduleTable = table;
+        goalVelPub = moduleTable.getDoubleTopic("Goal Velocity").publish();
+        goalHeadingPub = moduleTable.getDoubleTopic("Goal Heading").publish();
+        measVelPub = moduleTable.getDoubleTopic("Measured Velocity").publish();
+        measHeadingPub = moduleTable.getDoubleTopic("Measured Heading").publish();
+        voltagesPub = moduleTable.getDoubleArrayTopic("Voltages").publish();
+
     }
 
     public void resetEncoder(){
         DriveEncoder.setPosition(0);
+        if (RobotBase.isSimulation()) simDrivePosition = 0;
     }
 
     public Rotation2d getTurnPos(){
@@ -95,12 +113,16 @@ public class MK4i {
     }
 
     public SwerveModuleState getstate(){
+        if (RobotBase.isSimulation()) return moduleState;
         moduleState.speedMetersPerSecond = getDriveVelocity();
         moduleState.angle = getTurnPos();
         return moduleState;
     }
 
     public SwerveModulePosition getModPos(){
+        if (RobotBase.isSimulation()){
+      return new SwerveModulePosition(simDrivePosition, getTurnPos());
+        }
         modulePosition.distanceMeters = getDrivePos();
         modulePosition.angle = getTurnPos();
         return modulePosition;
@@ -122,10 +144,30 @@ public class MK4i {
         DriveMotor.setVoltage(DriveFF.calculate(driveVelocity, desiredState.speedMetersPerSecond));
 
         TurnPID.setReference(desiredState.angle.getRadians(), ControlType.kPosition);
+
+        moduleState = desiredState;
+
+        if (RobotBase.isSimulation()) simDrivePosition += desiredState.speedMetersPerSecond * 0.02;
     }
 
     public void stopModule(){
         DriveMotor.setVoltage(0);
         TurnMotor.set(0);
+    }
+
+    public void updateNT() {
+        goalVelPub.set(moduleState.speedMetersPerSecond);
+        goalHeadingPub.set(moduleState.angle.getRadians());
+        measVelPub.set(DriveEncoder.getVelocity());
+        measHeadingPub.set(getTurnPos().getRadians());
+        voltagesPub.set(
+            new double[] {
+              DriveMotor.getAppliedOutput() * DriveMotor.getBusVoltage(),
+              TurnMotor.getAppliedOutput() * TurnMotor.getBusVoltage()
+            });
+      }
+
+    public SwerveModuleState getModuleState() {
+        return moduleState;
     }
 }

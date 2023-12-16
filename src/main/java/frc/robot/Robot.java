@@ -4,12 +4,22 @@
 
 package frc.robot;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Commands.Drive;
+import frc.robot.Constants.SimMode;
 import frc.robot.Subsys.Swerve;
 
 public class Robot extends TimedRobot {
@@ -20,9 +30,32 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
-    configureBindings();
 
+    if (Robot.isSimulation() && Constants.simMode != SimMode.DESKTOP) {
+      NetworkTableInstance instance = NetworkTableInstance.getDefault();
+      instance.stopServer();
+      // set the NT server if simulating this code.
+      // "localhost" for desktop simulation with photonvision running, "photonvision.local" or IP
+      // address for hardware in loop simulation
+      if (Constants.simMode == SimMode.DESKTOP_VISION) instance.setServer("localhost");
+      else instance.setServer("photonvision.local");
+      instance.startClient4("myRobot");
+    }
+
+    DataLogManager.start();
+    try {
+      var buffer =
+          new BufferedReader(
+              new FileReader(new File(Filesystem.getDeployDirectory(), "gitdata.txt")));
+      DataLogManager.log(buffer.readLine());
+      buffer.close();
+    } catch (IOException e) {
+      DataLogManager.log("ERROR Can't get git data!");
+    }
+
+    DriverStation.startDataLog(DataLogManager.getLog());
     
+    configureBindings();
   }
   
 

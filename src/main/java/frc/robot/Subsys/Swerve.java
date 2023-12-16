@@ -2,6 +2,7 @@ package frc.robot.Subsys;
 
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.hal.SimDouble;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -9,16 +10,49 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.DoubleArrayPublisher;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.SerialPort.Port;
+import edu.wpi.first.wpilibj.simulation.SimDeviceSim;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.kSwerve;
 import frc.robot.Utils.MK4i;
 
 public class Swerve extends SubsystemBase{
+
+    NetworkTableInstance ntInst = NetworkTableInstance.getDefault();
+    NetworkTable ntTable = ntInst.getTable("system/drivetrain");
+    NetworkTable modulesTable = ntTable.getSubTable("modules");
+    NetworkTable poseTable = ntTable.getSubTable("pose");
+    
     private final SwerveModulePosition[] positions;
     private final SwerveDrivePoseEstimator estimator;
     private final AHRS gyro;
     private ChassisSpeeds speeds = new ChassisSpeeds(0,0,0);
+
+// Logging
+private final Field2d field2d = new Field2d();
+private final FieldObject2d autonRobot = field2d.getObject("Autonomous Pose");
+private final FieldObject2d autonPath = field2d.getObject("Autonomous Path");
+private final DoublePublisher rawGyroPub = ntTable.getDoubleTopic("Raw Gyro").publish();
+private final DoublePublisher offsetGyroPub = ntTable.getDoubleTopic("Offset Gyro").publish();
+private final DoubleArrayPublisher chassisVelPub =
+      ntTable.getDoubleArrayTopic("Commanded Chassis Velocity").publish();
+private final DoubleArrayPublisher measuredVelPub =
+      ntTable.getDoubleArrayTopic("Actual Chassis Velocity").publish();
+private final DoublePublisher autonXError = poseTable.getDoubleTopic("Path x Error").publish();
+private final DoublePublisher autonYError = poseTable.getDoubleTopic("Path y Error").publish();
+private final DoublePublisher autonZError = poseTable.getDoubleTopic("Path z Error").publish();
+private final DoubleArrayPublisher swerveStatesPub =
+      ntTable.getDoubleArrayTopic("Swerve Module States").publish();
+private Rotation2d gyroOffset;
 
     public final MK4i frontLeft = new MK4i(
         Constants.kSwerve.frontLeftDrive, 
@@ -26,32 +60,40 @@ public class Swerve extends SubsystemBase{
         Constants.kSwerve.kFrontLeftDriveAbsoluteEncoderPort, 
         true, 
         Constants.kSwerve.Offsets.frontLeft, 
-        false);
+        false,
+        modulesTable.getSubTable("FrontLeft"));
       public final MK4i frontRight = new MK4i(
         Constants.kSwerve.frontRightDrive,
         Constants.kSwerve.frontRightSteer,
         Constants.kSwerve.kFrontRightDriveAbsoluteEncoderPort, 
         false, 
         Constants.kSwerve.Offsets.frontRight, 
-        false);
+        false,
+        modulesTable.getSubTable("FrontRight"));
       public final MK4i backLeft = new MK4i(
         Constants.kSwerve.backLeftDrive,
         Constants.kSwerve.backLeftSteer,
         Constants.kSwerve.kBackLeftDriveAbsoluteEncoderPort, 
         true, 
         Constants.kSwerve.Offsets.backLeft, 
-        false);
+        false,
+        modulesTable.getSubTable("BackLeft"));
       public final MK4i backRight = new MK4i(
         Constants.kSwerve.backRightDrive,
         Constants.kSwerve.backRightSteer,
         Constants.kSwerve.kBackRightDriveAbsoluteEncoderPort, 
         false, 
         Constants.kSwerve.Offsets.backRight, 
-        false);
+        false,
+        modulesTable.getSubTable("BackRight"));
+
+
+        final SimDeviceSim gyroSim = new SimDeviceSim("gyro", 0 );
+        final SimDouble gyroYawSim = gyroSim.getDouble("yaw");
+
 
     public Swerve()
     {
-        
         gyro = new AHRS(Port.kMXP);
         estimator = new SwerveDrivePoseEstimator(
         Constants.kSwerve.DRIVE_KINEMATICS,
@@ -61,6 +103,18 @@ public class Swerve extends SubsystemBase{
         positions = getPositions();
         updateSwerveModulePositions();
     }
+
+
+    public void periodic() {
+        if (RobotBase.isSimulation())
+        gyroYawSim.set(
+            gyroYawSim.get() + speeds.omegaRadiansPerSecond * -360/ (2 * Math.PI) * 0.02
+        );
+        estimator.update(getGyroHeading(), getPositions());
+        estimator.addVisionMeasurement(getPose(), getGyroYawRate());
+        
+      }
+
     public double getFrontLeftAngle(){
         return frontLeft.getTurnPos().getRadians();
     }
@@ -86,9 +140,22 @@ public class Swerve extends SubsystemBase{
         };
     }
 
-    public void zeroGyro(){
-        gyro.reset();
+    public void zeroGyro() {
+        gyroOffset = getGyroRaw();
+      }    
+
+    private Rotation2d getGyroRaw(){
+        return gyro.getRotation2d(); 
     }
+
+    private Rotation2d getGyro() {
+        return getGyroRaw().minus(gyroOffset);
+      }
+    
+      // Get gyro yaw rate (radians/s CCW +)
+      private double getGyroYawRate() {
+        return Units.degreesToRadians(-gyro.getRate());
+      }
 
     public Rotation2d getGyroHeading(){
         return Rotation2d.fromDegrees(gyro.getYaw());
@@ -146,4 +213,49 @@ public class Swerve extends SubsystemBase{
         positions[2] = backLeft.getModPos();
         positions[3] = backRight.getModPos();
     }
+
+    private SwerveModuleState[] getStates() {
+        return new SwerveModuleState[] {
+          frontLeft.getModuleState(), backLeft.getModuleState(), backRight.getModuleState(), frontRight.getModuleState()
+        };
+      }
+
+    private void log() {
+        frontLeft.updateNT();
+        backLeft.updateNT();
+        backRight.updateNT();
+        frontRight.updateNT();
+    
+        rawGyroPub.set(getGyroRaw().getRadians());
+        offsetGyroPub.set(getGyro().getRadians());
+        // Send the chassis velocity as a double array (vel_x, vel_y, omega_z)
+        chassisVelPub.set(
+            new double[] {
+              speeds.vxMetersPerSecond,
+              speeds.vyMetersPerSecond,
+              speeds.omegaRadiansPerSecond
+            });
+        var measuredVel =
+            ChassisSpeeds.fromFieldRelativeSpeeds(
+                kSwerve.DRIVE_KINEMATICS.toChassisSpeeds(getStates()), getGyro().unaryMinus());
+        measuredVelPub.set(
+            new double[] {
+              measuredVel.vxMetersPerSecond, measuredVel.vyMetersPerSecond, getGyroYawRate()
+            });
+    
+        swerveStatesPub.set(
+            new double[] {
+              frontLeft.getModuleState().angle.getRadians(),
+                  frontLeft.getModuleState().speedMetersPerSecond,
+              backLeft.getModuleState().angle.getRadians(),
+                  backLeft.getModuleState().speedMetersPerSecond,
+              backRight.getModuleState().angle.getRadians(),
+                  backRight.getModuleState().speedMetersPerSecond,
+              frontRight.getModuleState().angle.getRadians(),
+                  frontRight.getModuleState().speedMetersPerSecond
+            });
+    
+        field2d.setRobotPose(getPose());
+        autonRobot.setPose(new Pose2d(8, 4, Rotation2d.fromDegrees(90)));
+      }
 }

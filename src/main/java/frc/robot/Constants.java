@@ -6,12 +6,23 @@ import edu.wpi.first.math.util.Units;
 
 public class Constants{
 
+
+public static SimMode simMode = SimMode.DESKTOP;
+
+public enum SimMode {
+                HARDWARE,
+                DESKTOP_VISION,
+                DESKTOP
+}
+
     private static final double DRIVETRAIN_WHEELBASE_METERS = Units.inchesToMeters(25);
     private static final double DRIVETRAIN_TRACKWIDTH_METERS = Units.inchesToMeters(25);
 
     public static class kSwerve{
       
 //TODO offsets
+
+
         public static class Offsets {
 
             public static double frontLeft = -Math.toDegrees(-0.24);
@@ -28,8 +39,8 @@ public class Constants{
         
 
         public static final int MaxSpeedMetersPerSecond = 2;
-        public static final int MaxTranslationX = 2;
-        public static final int MaxTranslationY = 2;
+        public static final int MaxTranslationX = 1;
+        public static final int MaxTranslationY = 1;
         public static final int Maxrotation = 1;
         
         public static final int frontLeftDrive = 1;
