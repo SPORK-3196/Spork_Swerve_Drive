@@ -37,8 +37,8 @@ public class Robot extends TimedRobot {
       // set the NT server if simulating this code.
       // "localhost" for desktop simulation with photonvision running, "photonvision.local" or IP
       // address for hardware in loop simulation
-      if (Constants.simMode == SimMode.DESKTOP_VISION) instance.setServer("localhost");
-      else instance.setServer("photonvision.local");
+      if (Constants.simMode == SimMode.DESKTOP_VISION){ instance.setServer("localhost");}
+      else{ instance.setServer("photonvision.local");}
       instance.startClient4("myRobot");
     }
 
