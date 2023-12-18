@@ -15,9 +15,9 @@ public class Drive extends CommandBase{
     private DoubleSupplier Translation, rotation, strafe;
     private BooleanSupplier robotCentric;
     
-    private SlewRateLimiter translationLimiter = new SlewRateLimiter(3);
-    private SlewRateLimiter rotationLimiter = new SlewRateLimiter(3);
-    private SlewRateLimiter strafeLimiter = new SlewRateLimiter(3);
+    private SlewRateLimiter translationLimiter = new SlewRateLimiter(0.5);
+    private SlewRateLimiter rotationLimiter = new SlewRateLimiter(0.5);
+    private SlewRateLimiter strafeLimiter = new SlewRateLimiter(0.5);
     
     public Drive(
         holoDrive m_HoloDrive,

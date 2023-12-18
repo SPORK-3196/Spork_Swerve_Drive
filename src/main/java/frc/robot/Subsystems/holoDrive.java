@@ -66,8 +66,10 @@ public MK4I backRight = new MK4I(
     public void drive(Translation2d translation, double rotation, boolean FieldOren, boolean isOpenLoop){
         states = 
             kSwerve.kinematics.toSwerveModuleStates(
-                FieldOren ? ChassisSpeeds.fromFieldRelativeSpeeds(translation.getX(), translation.getY(), rotation, getYaw())
+                FieldOren 
+                ? ChassisSpeeds.fromFieldRelativeSpeeds(translation.getX(), translation.getY(), rotation, getYaw())
                 : new ChassisSpeeds(translation.getX(), translation.getY(), rotation));
+            
         SwerveDriveKinematics.desaturateWheelSpeeds(states, kSwerve.MaxSpeedMetersPerSecond);
 
         frontLeft.setState(states[0], isOpenLoop);

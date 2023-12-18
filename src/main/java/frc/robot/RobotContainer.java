@@ -26,6 +26,12 @@ public class RobotContainer {
   public final JoystickButton x_Button = new JoystickButton(Driver, XboxController.Button.kX.value);
 
   public RobotContainer() {
+
+    configureBindings();
+  }
+
+  private void configureBindings() {
+
     m_HoloDrive.setDefaultCommand(
       new Drive(m_HoloDrive,
       () -> -LJSY,
@@ -34,11 +40,6 @@ public class RobotContainer {
       () -> x_Button.getAsBoolean())
     );
 
-    configureBindings();
-  }
-
-  private void configureBindings() {
-    
     A_button.toggleOnTrue(new InstantCommand(() -> m_HoloDrive.zeroGyro()));
   }
 
