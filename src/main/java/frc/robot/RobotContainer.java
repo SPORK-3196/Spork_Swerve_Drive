@@ -18,27 +18,24 @@ public class RobotContainer {
 
   public XboxController Driver = new XboxController(0);
 
-  public final double LJSX = Driver.getLeftX();
-  public final double LJSY = Driver.getLeftY();
-  public final double RJSX = Driver.getRightX();
-
-  public final JoystickButton A_button = new JoystickButton(Driver, XboxController.Button.kA.value); 
-  public final JoystickButton x_Button = new JoystickButton(Driver, XboxController.Button.kX.value);
+  public JoystickButton A_button = new JoystickButton(Driver, XboxController.Button.kA.value); 
+  public JoystickButton x_Button = new JoystickButton(Driver, XboxController.Button.kX.value);
 
   public RobotContainer() {
+
+    m_HoloDrive.setDefaultCommand(
+      new Drive(m_HoloDrive,
+      () -> Driver.getLeftY(),
+      () -> Driver.getRightX(),
+      () -> Driver.getLeftX(),
+      () -> x_Button.getAsBoolean())
+    );
 
     configureBindings();
   }
 
   private void configureBindings() {
 
-    m_HoloDrive.setDefaultCommand(
-      new Drive(m_HoloDrive,
-      () -> -LJSY,
-      () -> -RJSX,
-      () -> -LJSX,
-      () -> x_Button.getAsBoolean())
-    );
 
     A_button.toggleOnTrue(new InstantCommand(() -> m_HoloDrive.zeroGyro()));
   }

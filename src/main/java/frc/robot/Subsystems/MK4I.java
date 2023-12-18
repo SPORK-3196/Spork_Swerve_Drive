@@ -72,7 +72,7 @@ public class MK4I {
         DriveMotor.setIdleMode(IdleMode.kBrake);
         DriveEncoder.setVelocityConversionFactor(kSwerve.DriveVelocityConversionFactor);
         DriveEncoder.setPositionConversionFactor(kSwerve.DrivePositionCoversionFactor);
-        DriveController.setP(0.01);
+        DriveController.setP(0.25);
         DriveController.setI(0);
         DriveController.setD(0);
         DriveController.setFF(0);
