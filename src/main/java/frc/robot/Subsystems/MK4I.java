@@ -2,9 +2,7 @@ package frc.robot.Subsystems;
 
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
-import com.ctre.phoenix.sensors.CANCoderConfiguration;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
-import com.ctre.phoenix.sensors.SensorTimeBase;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
@@ -107,7 +105,7 @@ public class MK4I {
         CANcoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
 
     }
-
+// works well 
     private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop){
         if(isOpenLoop){
             double output = desiredState.speedMetersPerSecond / kSwerve.MaxSpeedMetersPerSecond;
@@ -119,7 +117,7 @@ public class MK4I {
             OpenLoopFF.calculate(desiredState.speedMetersPerSecond));
         }
     }
-
+//Dont know if it will work
     private void setAngle(SwerveModuleState desiredState){
         if(Math.abs(desiredState.angle.getDegrees() - lastState.angle.getDegrees()) > 0.10){
             AngleRotation2d = lastState.angle;

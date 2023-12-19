@@ -14,6 +14,9 @@ import frc.robot.Subsystems.holoDrive;
 
 public class RobotContainer {
 
+  //TODO Add LEDs light this thing up like a christmas tree
+  //TODO posible names the Hasslinger, Sporkio Drift, Practice Bot -Lame-
+
   private final holoDrive m_HoloDrive = new holoDrive();
 
   public XboxController Driver = new XboxController(0);
