@@ -17,9 +17,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.kSwerve;
 
 public class holoDrive extends SubsystemBase {
-    
+
     //Hardware
-    private final AHRS gyro;
+private final AHRS gyro;
 
 public MK4I frontLeft = new MK4I(
         kSwerve.frontLeftDrive,
@@ -33,34 +33,35 @@ public MK4I frontRight = new MK4I(
       kSwerve.kFrontRightDriveAbsoluteEncoderPort,
        kSwerve.Offsets.frontRight);
 
-public MK4I backLeft = new MK4I(
-    kSwerve.backLeftDrive,
-     kSwerve.backLeftSteer,
-      kSwerve.kBackLeftDriveAbsoluteEncoderPort,
-       kSwerve.Offsets.backLeft);
+// public MK4I backLeft = new MK4I(
+//     kSwerve.backLeftDrive,
+//      kSwerve.backLeftSteer,
+//       kSwerve.kBackLeftDriveAbsoluteEncoderPort,
+//        kSwerve.Offsets.backLeft);
 
-public MK4I backRight = new MK4I(
-    kSwerve.backRightDrive,
-     kSwerve.backRightSteer,
-      kSwerve.kBackRightDriveAbsoluteEncoderPort,
-       kSwerve.Offsets.backRight);
+// public MK4I backRight = new MK4I(
+//     kSwerve.backRightDrive,
+//      kSwerve.backRightSteer,
+//       kSwerve.kBackRightDriveAbsoluteEncoderPort,
+//        kSwerve.Offsets.backRight);
 
-    private SwerveDriveOdometry odometry;
-    private SwerveModuleState[] states;
+private SwerveDriveOdometry odometry;
+private SwerveModuleState[] states;
 
-    private Field2d field2d;
+private Field2d field2d;
 
-    public holoDrive(){
+public holoDrive(){
         gyro = new AHRS(Port.kMXP);
         zeroGyro();
-
+        
         odometry = new SwerveDriveOdometry(
         kSwerve.kinematics,
         getYaw(), 
         getPositions());
-
+    
         field2d = new Field2d();
         SmartDashboard.putData("Field", field2d);
+
     }
 
     public void drive(Translation2d translation, double rotation, boolean FieldOren, boolean isOpenLoop){
@@ -74,16 +75,16 @@ public MK4I backRight = new MK4I(
 
         frontLeft.setState(states[0], isOpenLoop);
         frontRight.setState(states[1], isOpenLoop);
-        backLeft.setState(states[2], isOpenLoop);
-        backRight.setState(states[3], isOpenLoop);
+        // backLeft.setState(states[2], isOpenLoop);
+        // backRight.setState(states[3], isOpenLoop);
     }
 
     private SwerveModulePosition[] getPositions(){
         return new SwerveModulePosition[]{
             frontLeft.getPosition(),
             frontRight.getPosition(),
-            backLeft.getPosition(),
-            backRight.getPosition()
+            // backLeft.getPosition(),
+            // backRight.getPosition()
         };
     }
 
@@ -99,8 +100,8 @@ public MK4I backRight = new MK4I(
         return new SwerveModuleState[]{
             frontLeft.getState(),
             frontRight.getState(),
-            backLeft.getState(),
-            backRight.getState()
+            // backLeft.getState(),
+            // backRight.getState()
         };
     }
 
@@ -110,11 +111,5 @@ public MK4I backRight = new MK4I(
 
     public Rotation2d getYaw(){
         return new Rotation2d(gyro.getYaw());
-    }
-
-    @Override
-    public void periodic() {
-        odometry.update(getYaw(), getPositions());
-        field2d.setRobotPose(getPose());
     }
 }
