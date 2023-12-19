@@ -34,14 +34,14 @@ public class MK4I {
     private RelativeEncoder RotationEncoder;
     private RelativeEncoder DriveEncoder;
 
-    private CANCoderConfiguration canCoderConfiguration = new CANCoderConfiguration();
-
+    private Rotation2d AngleRotation2d;
     private Rotation2d angleOffset;
-    private SwerveModuleState lastState = new SwerveModuleState();
+    private SwerveModuleState lastState;
 
 
     
     public MK4I(int driveID, int RotationID, int CANcoderID, Rotation2d Offset){
+        lastState = new SwerveModuleState();
         angleOffset = Offset;
         configDrive(driveID);
         configRotation(RotationID);
@@ -50,6 +50,7 @@ public class MK4I {
     }
 
     public void setState(SwerveModuleState desiredState, boolean isOpenLoop){
+
         desiredState = SwerveModuleState.optimize(desiredState, getState().angle);
         
         setAngle(desiredState);
@@ -57,7 +58,7 @@ public class MK4I {
     }
 
     private void resetToAbsolute(){
-        double absolutePosition = getCanCoder().getDegrees() - angleOffset.getDegrees();
+        double absolutePosition =  getCanCoder() - angleOffset.getDegrees();
         RotationEncoder.setPosition(absolutePosition);
     }
 
@@ -72,7 +73,7 @@ public class MK4I {
         DriveMotor.setIdleMode(IdleMode.kBrake);
         DriveEncoder.setVelocityConversionFactor(kSwerve.DriveVelocityConversionFactor);
         DriveEncoder.setPositionConversionFactor(kSwerve.DrivePositionCoversionFactor);
-        DriveController.setP(0.25);
+        DriveController.setP(0.1);
         DriveController.setI(0);
         DriveController.setD(0);
         DriveController.setFF(0);
@@ -101,18 +102,17 @@ public class MK4I {
     private void configCANCoder(int CANcoderID){
         CANcoder = new CANCoder(CANcoderID);
         CANcoder.configFactoryDefault();
-        canCoderConfiguration.absoluteSensorRange = AbsoluteSensorRange.Unsigned_0_to_360;
-        canCoderConfiguration.sensorDirection = false;
-        canCoderConfiguration.initializationStrategy = SensorInitializationStrategy.BootToAbsolutePosition;
-        canCoderConfiguration.sensorTimeBase = SensorTimeBase.PerSecond;
-        CANcoder.configAllSettings(canCoderConfiguration);
+        CANcoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
+        CANcoder.configSensorDirection(false);
+        CANcoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
+
     }
 
     private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop){
         if(isOpenLoop){
             double output = desiredState.speedMetersPerSecond / kSwerve.MaxSpeedMetersPerSecond;
-            DriveMotor.set(output);
-        } else { 
+            DriveMotor.setVoltage(output);
+        } else {
             DriveController.setReference(desiredState.speedMetersPerSecond,
             ControlType.kVelocity,
             0,
@@ -121,30 +121,28 @@ public class MK4I {
     }
 
     private void setAngle(SwerveModuleState desiredState){
-        Rotation2d rotation = (Math.abs(desiredState.speedMetersPerSecond)
-         <= (kSwerve.MaxSpeedMetersPerSecond * 0.01)) 
-         ? lastState.angle 
-         : desiredState.angle;
+        if(Math.abs(desiredState.angle.getDegrees() - lastState.angle.getDegrees()) > 0.10){
+            AngleRotation2d = lastState.angle;
+        }else{
+            AngleRotation2d = desiredState.angle;
+        }
 
-        RotationController.setReference(rotation.getDegrees(), ControlType.kPosition);
-        lastState.angle = rotation;
+        RotationController.setReference(AngleRotation2d.getDegrees(), ControlType.kPosition);
+        
+        lastState.angle = AngleRotation2d;
+
     }
 
-    private Rotation2d getRotation(){
-        return Rotation2d.fromDegrees(RotationEncoder.getPosition());
-    }
-
-    public Rotation2d getCanCoder(){
-        return Rotation2d.fromDegrees(CANcoder.getAbsolutePosition());
+    public double getCanCoder(){
+        return CANcoder.getPosition();
     }
 
     public SwerveModuleState getState(){
-        return new SwerveModuleState(DriveEncoder.getVelocity(),getRotation());
+        return new SwerveModuleState(DriveEncoder.getVelocity(), new Rotation2d(getCanCoder()));
     }
 
     public SwerveModulePosition getPosition(){
-        return new SwerveModulePosition(DriveEncoder.getPosition(), getRotation());
+        return new SwerveModulePosition(DriveEncoder.getPosition(), new Rotation2d(getCanCoder()));
     }
-
 
 }
