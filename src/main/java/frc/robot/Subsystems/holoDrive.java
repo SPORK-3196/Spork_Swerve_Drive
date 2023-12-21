@@ -27,11 +27,11 @@ public MK4I frontLeft = new MK4I(
           kSwerve.kFrontLeftDriveAbsoluteEncoderPort,
            kSwerve.Offsets.frontLeft);
 
-public MK4I frontRight = new MK4I(
-    kSwerve.frontRightDrive,
-     kSwerve.frontRightSteer,
-      kSwerve.kFrontRightDriveAbsoluteEncoderPort,
-       kSwerve.Offsets.frontRight);
+// public MK4I frontRight = new MK4I(
+//     kSwerve.frontRightDrive,
+//      kSwerve.frontRightSteer,
+//       kSwerve.kFrontRightDriveAbsoluteEncoderPort,
+//        kSwerve.Offsets.frontRight);
 
 // public MK4I backLeft = new MK4I(
 //     kSwerve.backLeftDrive,
@@ -74,7 +74,7 @@ public holoDrive(){
         SwerveDriveKinematics.desaturateWheelSpeeds(states, kSwerve.MaxSpeedMetersPerSecond);
 
         frontLeft.setState(states[0], isOpenLoop);
-        frontRight.setState(states[1], isOpenLoop);
+        // frontRight.setState(states[1], isOpenLoop);
         // backLeft.setState(states[2], isOpenLoop);
         // backRight.setState(states[3], isOpenLoop);
     }
@@ -82,7 +82,7 @@ public holoDrive(){
     private SwerveModulePosition[] getPositions(){
         return new SwerveModulePosition[]{
             frontLeft.getPosition(),
-            frontRight.getPosition(),
+            // frontRight.getPosition(),
             // backLeft.getPosition(),
             // backRight.getPosition()
         };
@@ -99,7 +99,7 @@ public holoDrive(){
     public SwerveModuleState[] getStates(){
         return new SwerveModuleState[]{
             frontLeft.getState(),
-            frontRight.getState(),
+            // frontRight.getState(),
             // backLeft.getState(),
             // backRight.getState()
         };

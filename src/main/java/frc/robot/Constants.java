@@ -48,10 +48,10 @@ public class Constants {
         public static final int frontRightSteer = 7;
   
         //CRTE CANcoder IDs
-        public static int kFrontLeftDriveAbsoluteEncoderPort = 1;
+        public static int kFrontLeftDriveAbsoluteEncoderPort = 2;
         public static int kBackLeftDriveAbsoluteEncoderPort = 3;
-        public static int kFrontRightDriveAbsoluteEncoderPort = 2;
-        public static int kBackRightDriveAbsoluteEncoderPort = 4;
+        public static int kFrontRightDriveAbsoluteEncoderPort = 4;
+        public static int kBackRightDriveAbsoluteEncoderPort = 1;
 
         public static final SwerveDriveKinematics kinematics =
         new SwerveDriveKinematics(

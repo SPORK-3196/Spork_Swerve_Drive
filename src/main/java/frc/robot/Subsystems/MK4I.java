@@ -49,10 +49,12 @@ public class MK4I {
 
     public void setState(SwerveModuleState desiredState, boolean isOpenLoop){
 
+        System.out.println("CanCoder Value: " + getCanCoder() + ", DesiredState: " + desiredState.angle.getDegrees());
+
         desiredState = SwerveModuleState.optimize(desiredState, getState().angle);
         
         setAngle(desiredState);
-        setSpeed(desiredState, isOpenLoop);
+        //setSpeed(desiredState, isOpenLoop);
     }
 
     private void resetToAbsolute(){
@@ -89,8 +91,8 @@ public class MK4I {
         RotationMotor.setInverted(true);
         RotationMotor.setIdleMode(IdleMode.kBrake);
         RotationEncoder.setPositionConversionFactor(kSwerve.AngleConversionFactor);
-        RotationController.setP(0.01);
-        RotationController.setI(0);
+        RotationController.setP(0.0);
+        RotationController.setI(0.0000001);
         RotationController.setD(0);
         RotationController.setFF(0.0);
         RotationMotor.enableVoltageCompensation(12);
@@ -100,10 +102,10 @@ public class MK4I {
     private void configCANCoder(int CANcoderID){
         CANcoder = new CANCoder(CANcoderID);
         CANcoder.configFactoryDefault();
-        CANcoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
+        CANcoder.configAbsoluteSensorRange(AbsoluteSensorRange.Signed_PlusMinus180);
         CANcoder.configSensorDirection(false);
         CANcoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
-
+        CANcoder.setPosition(0);
     }
 // works well 
     private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop){
@@ -117,18 +119,18 @@ public class MK4I {
             OpenLoopFF.calculate(desiredState.speedMetersPerSecond));
         }
     }
+
 //Dont know if it will work
     private void setAngle(SwerveModuleState desiredState){
-        if(Math.abs(desiredState.angle.getDegrees() - lastState.angle.getDegrees()) > 0.10){
-            AngleRotation2d = lastState.angle;
-        }else{
+         if(Math.abs(desiredState.angle.getDegrees() - lastState.angle.getDegrees()) < 0.10){
+             AngleRotation2d = lastState.angle;
+         }else{
             AngleRotation2d = desiredState.angle;
-        }
+         }
 
         RotationController.setReference(AngleRotation2d.getDegrees(), ControlType.kPosition);
         
         lastState.angle = AngleRotation2d;
-
     }
 
     public double getCanCoder(){
