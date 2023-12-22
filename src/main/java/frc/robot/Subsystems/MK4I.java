@@ -10,8 +10,6 @@ import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-import edu.wpi.first.hal.SimDevice;
-import edu.wpi.first.hal.SimDouble;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -34,7 +32,6 @@ public class MK4I {
     private RelativeEncoder RotationEncoder;
     private RelativeEncoder DriveEncoder;
 
-    private Rotation2d AngleRotation2d;
     private Rotation2d angleOffset;
     private SwerveModuleState optimizedState;
     private SwerveModuleState lastState;
@@ -56,7 +53,9 @@ public class MK4I {
         optimizedState = SwerveModuleState.optimize(desiredState, getState().angle);
 
         if(count == 8){
-        System.out.println("CanCoder Value: " + getCanCoder() + ", DesiredState: " + optimizedState.angle.getDegrees());
+        System.out.println("CanCoder Value: " + getCanCoder() +
+         ", DesiredState: " + optimizedState.angle.getRotations() +
+          ", LastState " + lastState.angle.getRotations());
         count = 0;
         }
         count += 1;
@@ -131,9 +130,12 @@ public class MK4I {
 
 //Dont know if it will work
     private void setAngle(SwerveModuleState optimizedState){
-        RotationController.setReference(optimizedState.angle.minus(angleOffset).getRadians(), ControlType.kPosition);
-        
-        lastState.angle = AngleRotation2d;
+        if(Math.abs(lastState.angle.getDegrees() - optimizedState.angle.getDegrees()) > 0.1){
+        RotationController.setReference(optimizedState.angle.minus(angleOffset).getRotations(), ControlType.kPosition);
+    }else{
+        RotationController.setReference(lastState.angle.minus(angleOffset).getRotations(), ControlType.kPosition);
+    }
+        lastState.angle = optimizedState.angle;
     }
 
     public double getCanCoder(){
