@@ -73,7 +73,7 @@ public holoDrive(){
             
         SwerveDriveKinematics.desaturateWheelSpeeds(states, kSwerve.MaxSpeedMetersPerSecond);
 
-        frontLeft.setState(states[0], isOpenLoop, translation.getX());
+        frontLeft.setState(states[0], isOpenLoop);
         // frontRight.setState(states[1], isOpenLoop);
         // backLeft.setState(states[2], isOpenLoop);
         // backRight.setState(states[3], isOpenLoop);
