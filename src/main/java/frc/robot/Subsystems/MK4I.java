@@ -34,14 +34,13 @@ public class MK4I {
 
     private Rotation2d angleOffset;
     private SwerveModuleState optimizedState;
-    private SwerveModuleState lastState;
+    private Rotation2d lastangle;
     private double count = 0;
 
 
     
     public MK4I(int driveID, int RotationID, int CANcoderID, Rotation2d Offset){
-        
-        lastState = new SwerveModuleState();
+        lastangle = new Rotation2d();
         angleOffset = Offset;
         configDrive(driveID);
         configRotation(RotationID);
@@ -53,9 +52,9 @@ public class MK4I {
         optimizedState = SwerveModuleState.optimize(desiredState, getState().angle);
 
         if(count == 8){
-        System.out.println("CanCoder Value: " + getCanCoder() +
-         ", DesiredState: " + optimizedState.angle.getRotations() +
-          ", LastState " + lastState.angle.getRotations());
+        System.out.println("CanCoder Value: " + getCanCoder().getDegrees() +
+         ", DesiredState: " + optimizedState.angle.getDegrees() +
+          ", LastAngle " + lastangle.getDegrees());
         count = 0;
         }
         count += 1;
@@ -66,7 +65,7 @@ public class MK4I {
     }
 
     private void resetToAbsolute(){
-        double absolutePosition =  getCanCoder() - angleOffset.getDegrees();
+        double absolutePosition =  getCanCoder().getDegrees() - angleOffset.getDegrees();
         RotationEncoder.setPosition(absolutePosition);
     }
 
@@ -130,25 +129,33 @@ public class MK4I {
 
 //Dont know if it will work
     private void setAngle(SwerveModuleState optimizedState){
-        if(Math.abs(lastState.angle.getDegrees() - optimizedState.angle.getDegrees()) > 0.1){
-        RotationController.setReference(optimizedState.angle.minus(angleOffset).getRotations(), ControlType.kPosition);
-    }else{
-        RotationController.setReference(lastState.angle.minus(angleOffset).getRotations(), ControlType.kPosition);
-    }
-        lastState.angle = optimizedState.angle;
+        Rotation2d angle;
+        if(Math.abs(optimizedState.speedMetersPerSecond) <= (kSwerve.MaxSpeedMetersPerSecond) * 0.01){
+            angle = lastangle;
+        }
+        else{
+            angle = optimizedState.angle;
+        }
+
+        RotationController.setReference(angle.getDegrees(), ControlType.kPosition);
+    
+        lastangle = optimizedState.angle;
     }
 
-    public double getCanCoder(){
+    public Rotation2d getAngle(){
+        return Rotation2d.fromDegrees(RotationEncoder.getPosition());
+    }
 
-        return CANcoder.getAbsolutePosition();
+    public Rotation2d getCanCoder(){
+        return Rotation2d.fromDegrees(CANcoder.getAbsolutePosition()); 
     }
 
     public SwerveModuleState getState(){
-        return new SwerveModuleState(DriveEncoder.getVelocity(), new Rotation2d(getCanCoder()));
+        return new SwerveModuleState(DriveEncoder.getVelocity(), getAngle());
     }
 
     public SwerveModulePosition getPosition(){
-        return new SwerveModulePosition(DriveEncoder.getPosition(), new Rotation2d(getCanCoder()));
+        return new SwerveModulePosition(DriveEncoder.getPosition(), getAngle());
     }
 
 }
