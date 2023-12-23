@@ -63,6 +63,35 @@ public class MK4I {
         setAngle(optimizedState);
         //setSpeed(desiredState, isOpenLoop);
     }
+    
+    // works well 
+    private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop){
+        if(isOpenLoop){
+            double output = desiredState.speedMetersPerSecond / kSwerve.MaxSpeedMetersPerSecond;
+            DriveMotor.setVoltage(output);
+        } else {
+            DriveController.setReference(desiredState.speedMetersPerSecond,
+            ControlType.kVelocity,
+            0,
+            OpenLoopFF.calculate(desiredState.speedMetersPerSecond));
+        }
+    }
+
+//Dont know if it will work
+    private void setAngle(SwerveModuleState optimizedState){
+        Rotation2d angle;
+        if(Math.abs(optimizedState.speedMetersPerSecond) <= (kSwerve.MaxSpeedMetersPerSecond) * 0.01){
+            angle = lastangle;
+        }
+        else{
+            angle = optimizedState.angle;
+        }
+
+        RotationController.setReference(angle.getDegrees(), ControlType.kPosition);
+    
+        lastangle = optimizedState.angle;
+    }
+
 
     private void resetToAbsolute(){
         double absolutePosition =  getCanCoder().getDegrees() - angleOffset.getDegrees();
@@ -113,33 +142,6 @@ public class MK4I {
         CANcoder.configSensorDirection(false);
         CANcoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
         CANcoder.setPosition(0);
-    }
-// works well 
-    private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop){
-        if(isOpenLoop){
-            double output = desiredState.speedMetersPerSecond / kSwerve.MaxSpeedMetersPerSecond;
-            DriveMotor.setVoltage(output);
-        } else {
-            DriveController.setReference(desiredState.speedMetersPerSecond,
-            ControlType.kVelocity,
-            0,
-            OpenLoopFF.calculate(desiredState.speedMetersPerSecond));
-        }
-    }
-
-//Dont know if it will work
-    private void setAngle(SwerveModuleState optimizedState){
-        Rotation2d angle;
-        if(Math.abs(optimizedState.speedMetersPerSecond) <= (kSwerve.MaxSpeedMetersPerSecond) * 0.01){
-            angle = lastangle;
-        }
-        else{
-            angle = optimizedState.angle;
-        }
-
-        RotationController.setReference(angle.getDegrees(), ControlType.kPosition);
-    
-        lastangle = optimizedState.angle;
     }
 
     public Rotation2d getAngle(){
