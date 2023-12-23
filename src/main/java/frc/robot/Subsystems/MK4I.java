@@ -11,6 +11,7 @@ import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -25,7 +26,7 @@ public class MK4I {
     private CANSparkMax DriveMotor;
     private CANSparkMax RotationMotor;
 
-    private ProfiledPIDController RotationController = new ProfiledPIDController(0, 0, 0, new Constraints(kSwerve.Maxrotation, 0.1));
+    private PIDController RotationController;
     private SparkMaxPIDController DriveController;
     private SimpleMotorFeedforward OpenLoopFF = new SimpleMotorFeedforward(
         0.667,
@@ -44,11 +45,11 @@ public class MK4I {
 
     
     public MK4I(int driveID, int RotationID, int CANcoderID, Rotation2d Offset){
-        lastangle = 0;
-        angleOffset = Offset;
         configDrive(driveID);
         configRotation(RotationID);
         configCANCoder(CANcoderID);
+        lastangle = getAngle().getDegrees();
+        angleOffset = Offset;
         resetToAbsolute();
     }
 
@@ -84,17 +85,15 @@ public class MK4I {
 
 //Dont know if it will work
     private void setAngle(SwerveModuleState optimizedState){
-        double pidOut;
+        
         if(Math.abs(optimizedState.speedMetersPerSecond) <= (kSwerve.MaxSpeedMetersPerSecond) * 0.01){
             angle = lastangle;
-            pidOut = 0;
+            RotationMotor.set(0);
         }
         else{
             angle = optimizedState.angle.getDegrees();
-            pidOut = RotationController.calculate(getAngle().getDegrees(), angle);
+            RotationMotor.set(RotationController.calculate(getAngle().getDegrees(), angle));
         }
-
-        RotationMotor.setVoltage(pidOut);
 
         lastangle = getAngle().getDegrees();
     }
@@ -139,13 +138,13 @@ public class MK4I {
         RotationMotor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus2, 50);
 
         RotationMotor.setSmartCurrentLimit(20);
-        RotationMotor.setInverted(false);
+        RotationMotor.setInverted(true);
         RotationMotor.setIdleMode(IdleMode.kBrake);
         RotationEncoder.setPositionConversionFactor(kSwerve.AngleConversionFactor);
-        
-        RotationController.setP(0.1);
-        RotationController.setI(0);
+        RotationController = new PIDController(0, 0, 0);
+        RotationController.setP(0.05);
         RotationController.setD(0);
+        RotationController.enableContinuousInput(-Math.PI, Math.PI);
         RotationMotor.enableVoltageCompensation(12);
         RotationMotor.burnFlash();
     }
@@ -156,7 +155,6 @@ public class MK4I {
         CANcoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
         CANcoder.configSensorDirection(false);
         CANcoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
-        CANcoder.setPosition(0);
     }
 
     public Rotation2d getAngle(){
