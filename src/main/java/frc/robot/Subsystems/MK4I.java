@@ -111,7 +111,7 @@ public class MK4I {
         }
         double canAng = getCanCoder().getDegrees();
         double out = RotationController.calculate(canAng, angle);
-        //out = out > 1.0 ? 1.0 : (out < -1.0 ? -1.0 : out);
+        out = out > 0.3 ? 0.3 : (out < -0.3 ? -0.3 : out);
         System.out.println("can, " + canAng + " angle, " + angle + " out " + out);
         RotationMotor.set(out);
 
@@ -161,7 +161,7 @@ public class MK4I {
         RotationMotor.setInverted(true);
         RotationMotor.setIdleMode(IdleMode.kBrake);
         RotationEncoder.setPositionConversionFactor(1.0);
-        RotationController = new PIDController(0.01, 0, 0);
+        RotationController = new PIDController(0.02, 0, 0.01);
         RotationController.enableContinuousInput(0, 360);
         RotationMotor.enableVoltageCompensation(12);
         RotationMotor.burnFlash();
@@ -180,7 +180,9 @@ public class MK4I {
     }
 
     public Rotation2d getCanCoder(){
-        return Rotation2d.fromDegrees(CANcoder.getAbsolutePosition()); 
+        return Rotation2d.fromRotations(RotationEncoder.getPosition() * 7/150);
+
+        //return Rotation2d.fromDegrees(CANcoder.getAbsolutePosition()); 
     }
 
     public SwerveModuleState getState(){

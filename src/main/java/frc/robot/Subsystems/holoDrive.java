@@ -55,12 +55,12 @@ private Field2d field2d;
 public holoDrive(){
         gyro = new AHRS(Port.kMXP);
 
-        try {
-            TimeUnit.SECONDS.sleep(10);
+        // try {
+        //     TimeUnit.SECONDS.sleep(10);
 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        // } catch (InterruptedException e) {
+        //     e.printStackTrace();
+        // }
         zeroGyro();
         
         System.out.println("zero g");
