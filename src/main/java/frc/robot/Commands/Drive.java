@@ -52,8 +52,8 @@ public class Drive extends CommandBase{
 
         m_HoloDrive.drive(new Translation2d(translationVal, strafeVal).times(kSwerve.MaxSpeedMetersPerSecond),
         rotationVal * kSwerve.Maxrotation,
-        !robotCentric.getAsBoolean(),
-        false);
+        robotCentric.getAsBoolean(),
+        true);
     }
     
 }

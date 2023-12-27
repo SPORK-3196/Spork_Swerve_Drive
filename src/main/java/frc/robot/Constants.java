@@ -22,13 +22,14 @@ public class Constants {
 
         public static final double wheelDiameter = Units.inchesToMeters(4.0);
         public static final double WheelCircumference = wheelDiameter * Math.PI;
-        public static final double RotationGearRatio = 8.14/ 1;//8.14:1
+        public static final double RotationGearRatio = (150/7)/1;
         public static final double DriveGearRatio = 8.14/1;
 
         public static final double DrivePositionCoversionFactor = WheelCircumference / DriveGearRatio;
         public static final double DriveVelocityConversionFactor = DrivePositionCoversionFactor / 60;
 
-        public static final double AngleConversionFactor = 360 / RotationGearRatio;
+        public static final double AngleConversionFactor = 360 * (1/900);
+       // RotationGearRatio;
         
         //Max Speeds (Vroom Vroom)
         public static final double MaxSpeedMetersPerSecond = 4.5;

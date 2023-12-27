@@ -1,5 +1,7 @@
 package frc.robot.Subsystems;
 
+import java.util.concurrent.TimeUnit;
+
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -52,8 +54,17 @@ private Field2d field2d;
 
 public holoDrive(){
         gyro = new AHRS(Port.kMXP);
+
+        try {
+            TimeUnit.SECONDS.sleep(10);
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         zeroGyro();
         
+        System.out.println("zero g");
+    
         odometry = new SwerveDriveOdometry(
         kSwerve.kinematics,
         getYaw(), 
@@ -61,7 +72,6 @@ public holoDrive(){
     
         field2d = new Field2d();
         SmartDashboard.putData("Field", field2d);
-
     }
 
     public void drive(Translation2d translation, double rotation, boolean FieldOren, boolean isOpenLoop){
@@ -71,6 +81,8 @@ public holoDrive(){
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(translation.getX(), translation.getY(), rotation, getYaw())
                 : new ChassisSpeeds(translation.getX(), translation.getY(), rotation));
             
+
+                //System.out.println(getYaw().getDegrees());
         SwerveDriveKinematics.desaturateWheelSpeeds(states, kSwerve.MaxSpeedMetersPerSecond);
 
         frontLeft.setState(states[0], isOpenLoop);
