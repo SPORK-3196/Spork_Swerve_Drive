@@ -1,7 +1,5 @@
 package frc.robot.Subsystems;
 
-import java.util.concurrent.TimeUnit;
-
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -21,7 +19,7 @@ import frc.robot.Constants.kSwerve;
 public class holoDrive extends SubsystemBase {
 
     //Hardware
-private final AHRS gyro;
+private final AHRS gyro = new AHRS(Port.kMXP);
 
 public MK4I frontLeft = new MK4I(
         kSwerve.frontLeftDrive,
@@ -53,17 +51,16 @@ private SwerveModuleState[] states;
 private Field2d field2d;
 
 public holoDrive(){
-        gyro = new AHRS(Port.kMXP);
 
-        // try {
-        //     TimeUnit.SECONDS.sleep(10);
-
-        // } catch (InterruptedException e) {
-        //     e.printStackTrace();
-        // }
         zeroGyro();
-        
-        System.out.println("zero g");
+
+        System.out.println("___________________________");
+        System.out.println("___________________________");
+        System.out.println("___________________________");
+        System.out.println("zero gyro, " +  " gyro yaw, " + getYaw().getDegrees());
+        System.out.println("___________________________");
+        System.out.println("___________________________");
+        System.out.println("___________________________");
     
         odometry = new SwerveDriveOdometry(
         kSwerve.kinematics,
@@ -89,6 +86,8 @@ public holoDrive(){
         // frontRight.setState(states[1], isOpenLoop);
         // backLeft.setState(states[2], isOpenLoop);
         // backRight.setState(states[3], isOpenLoop);
+
+        SmartDashboard.updateValues();
     }
 
     private SwerveModulePosition[] getPositions(){
