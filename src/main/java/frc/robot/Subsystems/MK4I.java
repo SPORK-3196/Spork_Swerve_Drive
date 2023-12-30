@@ -23,7 +23,7 @@ public class MK4I {
     private CANSparkMax DriveMotor;
     private CANSparkMax RotationMotor;
 
-    private PIDController RotationController;
+    private SparkMaxPIDController RotationController;
     private SparkMaxPIDController DriveController;
     
     private SimpleMotorFeedforward OpenLoopFF = new SimpleMotorFeedforward(
@@ -47,7 +47,8 @@ public class MK4I {
         configRotation(RotationID);
         configCANCoder(CANcoderID);
         angleOffset = Offset;
-        lastangle = getCanCoder().getDegrees();
+        //lastangle = getCanCoder().getDegrees();
+        lastangle = getAngle().getRotations() * (150/7);
         resetToAbsolute();
     }
 
@@ -101,26 +102,25 @@ public class MK4I {
         //     RotationMotor.set(out);
         // }
         
-        
-
         if(Math.abs(optimizedState.speedMetersPerSecond) <= (kSwerve.MaxSpeedMetersPerSecond) * 0.01){
             angle = lastangle;
         }
         else{
-            angle = optimizedState.angle.getDegrees();
+            angle = optimizedState.angle.getRotations() * (150/7);
         }
-        double canAng = getCanCoder().getDegrees();
-        double out = RotationController.calculate(canAng, angle);
-        out = out > 0.3 ? 0.3 : (out < -0.3 ? -0.3 : out);
-        System.out.println("can, " + canAng + " angle, " + angle + " out " + out);
-        RotationMotor.set(out);
+        // double canAng = getCanCoder().getDegrees();
+        // double out = RotationController.calculate(canAng, angle);
+        // System.out.println("can, " + canAng + " angle, " + angle + " out " + out);
+        // RotationMotor.set(out);
 
-        lastangle = getCanCoder().getDegrees();
+        RotationController.setReference(angle, ControlType.kPosition);
+
+        lastangle = getAngle().getRotations() * (150/7);
     }
 
 
     private void resetToAbsolute(){
-        double absolutePosition =  getCanCoder().getDegrees() - angleOffset.getDegrees();
+        double absolutePosition =  getCanCoder().getRotations() - angleOffset.getRotations();
         RotationEncoder.setPosition(absolutePosition);
     }
 
@@ -132,9 +132,9 @@ public class MK4I {
         DriveMotor.restoreFactoryDefaults();
         DriveMotor.setSmartCurrentLimit(80);
         DriveMotor.setInverted(false);
-        DriveMotor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 100);
-        DriveMotor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus1, 20);
-        DriveMotor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus2, 20);
+        // DriveMotor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 100);
+        // DriveMotor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus1, 20);
+        // DriveMotor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus2, 20);
 
         DriveMotor.setIdleMode(IdleMode.kBrake);
         DriveEncoder.setVelocityConversionFactor(kSwerve.DriveVelocityConversionFactor);
@@ -153,16 +153,22 @@ public class MK4I {
         
         RotationEncoder = RotationMotor.getEncoder();
         RotationMotor.restoreFactoryDefaults();
-        RotationMotor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 10);
-        RotationMotor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus1, 20);
-        RotationMotor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus2, 50);
+        // RotationMotor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 10);
+        // RotationMotor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus1, 20);
+        // RotationMotor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus2, 50);
 
         RotationMotor.setSmartCurrentLimit(20);
         RotationMotor.setInverted(true);
         RotationMotor.setIdleMode(IdleMode.kBrake);
         RotationEncoder.setPositionConversionFactor(1.0);
-        RotationController = new PIDController(0.02, 0, 0.01);
-        RotationController.enableContinuousInput(0, 360);
+        RotationController = RotationMotor.getPIDController();
+        RotationController.setP(0.02);
+        RotationController.setD(0.0);
+        RotationController.setOutputRange(-0.3, 0.3);
+        RotationController.setPositionPIDWrappingEnabled(true);
+        RotationController.setPositionPIDWrappingMaxInput(360);
+        RotationController.setPositionPIDWrappingMinInput(0);
+        //RotationController.enableContinuousInput(0, 360);
         RotationMotor.enableVoltageCompensation(12);
         RotationMotor.burnFlash();
     }
@@ -180,9 +186,9 @@ public class MK4I {
     }
 
     public Rotation2d getCanCoder(){
-        return Rotation2d.fromRotations(RotationEncoder.getPosition() * 7/150);
+        //return Rotation2d.fromRotations(RotationEncoder.getPosition() * 7/150);
 
-        //return Rotation2d.fromDegrees(CANcoder.getAbsolutePosition()); 
+        return Rotation2d.fromDegrees(CANcoder.getAbsolutePosition()); 
     }
 
     public SwerveModuleState getState(){
