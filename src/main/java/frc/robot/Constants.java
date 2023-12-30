@@ -14,6 +14,7 @@ public class Constants {
 //TODO offsets
     public static class Offsets {
 
+        //the offsets are jumbled just like the encoder values 
         public static Rotation2d frontLeft = Rotation2d.fromRadians(0);//-Units.radiansToDegrees(-0.24);
         public static Rotation2d backLeft = Rotation2d.fromRadians(0);//-Units.radiansToDegrees(0.54);
         public static Rotation2d backRight = Rotation2d.fromRadians(0);//-Units.radiansToDegrees(1.97);
@@ -48,6 +49,7 @@ public class Constants {
         public static final int frontRightSteer = 7;
   
         //CRTE CANcoder IDs
+        //TODO Fix Id values (just disable module movement and print your encoder value to terminal)
         public static int kFrontLeftDriveAbsoluteEncoderPort = 2;
         public static int kBackLeftDriveAbsoluteEncoderPort = 3;
         public static int kFrontRightDriveAbsoluteEncoderPort = 4;
