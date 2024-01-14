@@ -15,11 +15,24 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
+
     m_robotContainer = new RobotContainer();
+
+    
   }
 
   @Override
   public void robotPeriodic() {
+
+    OI.swervevalues.CanCoderEntry.setDouble(OI.swervevalues.CanCoder);
+    OI.swervevalues.RotMotorEncoderEntry.setDouble(OI.swervevalues.RotMotorEncoder);
+    OI.swervevalues.desiredStateEntry.setDouble(OI.swervevalues.desiredState);
+
+    OI.swervevalues.X_JoyEntry.setDouble(OI.swervevalues.X_Joy);
+    OI.swervevalues.Y_JoyEntry.setDouble(OI.swervevalues.Y_Joy);
+    OI.swervevalues.Rot_JoyEntry.setDouble(OI.swervevalues.Rot_Joy);
+
+
     CommandScheduler.getInstance().run();
   }
 

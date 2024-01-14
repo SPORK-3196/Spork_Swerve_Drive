@@ -8,6 +8,8 @@ import edu.wpi.first.math.util.Units;
 public class Constants {
     private static final double DRIVETRAIN_WHEELBASE_METERS = Units.inchesToMeters(25);
     private static final double DRIVETRAIN_TRACKWIDTH_METERS = Units.inchesToMeters(25);
+    
+    public static final double kDeadband = 0.01;
 
     public static class kSwerve{
       

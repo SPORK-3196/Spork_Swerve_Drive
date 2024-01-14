@@ -10,10 +10,12 @@ import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import frc.robot.OI;
 import frc.robot.Constants.kSwerve;
 
 public class MK4I {
@@ -21,7 +23,7 @@ public class MK4I {
     private CANSparkMax DriveMotor;
     private CANSparkMax RotationMotor;
 
-    private SparkMaxPIDController RotationController;
+    private PIDController RotationController;
     private SparkMaxPIDController DriveController;
     
     private SimpleMotorFeedforward OpenLoopFF = new SimpleMotorFeedforward(
@@ -62,8 +64,14 @@ public class MK4I {
         count = 0;
         }
         count += 1;
+
+        OI.swervevalues.CanCoder = getCanCoder().getRotations();
+        OI.swervevalues.RotMotorEncoder = getAngle().getRotations();
+        OI.swervevalues.desiredState = desiredState.angle.getRotations();
+
+
         
-        setAngle(optimizedState);
+        setAngle(desiredState);
         //setSpeed(desiredState, isOpenLoop);
     }
 
@@ -87,14 +95,28 @@ public class MK4I {
 
         // if(Math.abs(optimizedState.speedMetersPerSecond) <= (kSwerve.MaxSpeedMetersPerSecond) * 0.01){
         //     angle = lastangle;
-        // }
-        // else{
-            angle = optimizedState.angle.getRotations() * (150/7);
-        //}
+        // // }
+        // // else{
+        //     angle = optimizedState.angle.getRotations() * (150/7);
+        // //}
 
-        RotationController.setReference(angle, CANSparkMax.ControlType.kPosition);
+        // RotationController.setReference(angle, CANSparkMax.ControlType.kPosition);
 
-        lastangle = getAngle().getRotations() * (150/7);
+        // lastangle = getAngle().getRotations() * (150/7);
+
+
+        
+        OI.swervevalues.positionErrorEntry.setDouble(RotationController.getPositionError());
+        if(Math.abs(optimizedState.speedMetersPerSecond) <= (kSwerve.MaxSpeedMetersPerSecond) * 0.01){
+            angle = lastangle;
+            //RotationMotor.set(0);
+        }
+        else{
+            angle = optimizedState.angle.getDegrees();
+            RotationMotor.set(RotationController.calculate(getCanCoder().getDegrees(), angle));
+        }
+
+        lastangle = getCanCoder().getDegrees();
     }
 
 
@@ -137,14 +159,15 @@ public class MK4I {
         RotationMotor.setInverted(true);
         RotationMotor.setIdleMode(IdleMode.kBrake);
         RotationEncoder.setPositionConversionFactor(1.0);
-        RotationController = RotationMotor.getPIDController();
-        RotationController.setP(0.7);
-        RotationController.setD(.02);
+        //RotationController = RotationMotor.getPIDController();
+        RotationController = new PIDController(0.1, 0.01, 0.0); // p 0.025 i 0.01
 
-   
-        RotationController.setPositionPIDWrappingEnabled(true);
-        RotationController.setPositionPIDWrappingMaxInput(2*Math.PI);
-        RotationController.setPositionPIDWrappingMinInput(0);
+
+        RotationController.enableContinuousInput(-Math.PI, Math.PI);
+        // RotationController.setPositionPIDWrappingEnabled(true);
+        
+        // RotationController.setPositionPIDWrappingMaxInput(2*Math.PI);
+        // RotationController.setPositionPIDWrappingMinInput(0);
 
         //RotationMotor.enableVoltageCompensation(12);
         RotationMotor.burnFlash();

@@ -83,9 +83,9 @@ public holoDrive(){
         SwerveDriveKinematics.desaturateWheelSpeeds(states, kSwerve.MaxSpeedMetersPerSecond);
 
         frontLeft.setState(states[0], isOpenLoop);
-         frontRight.setState(states[1], isOpenLoop);
-        backLeft.setState(states[2], isOpenLoop);
-        backRight.setState(states[3], isOpenLoop);
+        //  frontRight.setState(states[1], isOpenLoop);
+        // backLeft.setState(states[2], isOpenLoop);
+        // backRight.setState(states[3], isOpenLoop);
 
         SmartDashboard.updateValues();
     }
@@ -93,9 +93,9 @@ public holoDrive(){
     private SwerveModulePosition[] getPositions(){
         return new SwerveModulePosition[]{
             frontLeft.getPosition(),
-             frontRight.getPosition(),
-            backLeft.getPosition(),
-            backRight.getPosition()
+            // frontRight.getPosition(),
+            // backLeft.getPosition(),
+            // backRight.getPosition()
         };
     }
 
@@ -110,9 +110,9 @@ public holoDrive(){
     public SwerveModuleState[] getStates(){
         return new SwerveModuleState[]{
             frontLeft.getState(),
-             frontRight.getState(),
-            backLeft.getState(),
-            backRight.getState()
+            // frontRight.getState(),
+            // backLeft.getState(),
+            // backRight.getState()
         };
     }
 
