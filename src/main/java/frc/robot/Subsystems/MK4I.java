@@ -1,5 +1,7 @@
 package frc.robot.Subsystems;
 
+import org.opencv.core.Mat;
+
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
@@ -73,7 +75,7 @@ public class MK4I {
 
 //works now okayly good 
     private void setAngle(SwerveModuleState optimizedState){
-        RotationController.setReference(optimizedState.angle.minus(new Rotation2d(angleOffset)).getRotations(),
+        RotationController.setReference(optimizedState.angle.minus(new Rotation2d(angleOffset)).getRadians(),
         ControlType.kPosition);
     }
 
@@ -113,8 +115,8 @@ public class MK4I {
         RotationController.setI(0); //0
         RotationController.setD(0.1); //0.2
         RotationController.setPositionPIDWrappingEnabled(true);
-        RotationController.setPositionPIDWrappingMaxInput(2*Math.PI);
-        RotationController.setPositionPIDWrappingMinInput(0);
+        RotationController.setPositionPIDWrappingMaxInput(Math.PI);
+        RotationController.setPositionPIDWrappingMinInput(-Math.PI);
         RotationMotor.enableVoltageCompensation(12);
         RotationMotor.burnFlash();
     }
