@@ -10,7 +10,6 @@ import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -19,65 +18,47 @@ import frc.robot.OI;
 import frc.robot.Constants.kSwerve;
 
 public class MK4I {
+    private SwerveModuleState optimizedState = new SwerveModuleState();
+    private SwerveModuleState Target = new SwerveModuleState();
+    private double angleOffset;
 
-    private CANSparkMax DriveMotor;
-    private CANSparkMax RotationMotor;
-
-    private PIDController RotationController;
-    private SparkMaxPIDController DriveController;
-    
     private SimpleMotorFeedforward OpenLoopFF = new SimpleMotorFeedforward(
         0.667,
         2.44,
         0.27);
 
+    private CANSparkMax DriveMotor;
+    private CANSparkMax RotationMotor;
+
+    private SparkMaxPIDController RotationController;
+    private SparkMaxPIDController DriveController;
+
     private CANCoder CANcoder;
     private RelativeEncoder RotationEncoder;
     private RelativeEncoder DriveEncoder;
 
-    private Rotation2d angleOffset;
-    private SwerveModuleState optimizedState;
-    private double angle;
-    private double count = 0;
-    private double lastangle;
-
     
-    public MK4I(int driveID, int RotationID, int CANcoderID, Rotation2d Offset){
+    public MK4I(int driveID, int RotationID, int CANcoderID, Double Offset){
         configDrive(driveID);
         configRotation(RotationID);
         configCANCoder(CANcoderID);
         angleOffset = Offset;
-        //lastangle = getCanCoder().getDegrees();
-        lastangle = getAngle().getRotations() * (150/7);
-        resetToAbsolute();
+        Target.angle = getAngle();
     }
 
     public void setState(SwerveModuleState desiredState, boolean isOpenLoop){
         optimizedState = SwerveModuleState.optimize(desiredState, getState().angle);
 
-        if(count == 8){
-        System.out.println("CanCoder Value: " + getCanCoder().getDegrees()
-         + ", motor encoder " + getAngle().getDegrees() +
-          ", desiredState " + desiredState.angle.getDegrees() + 
-         ", OptimizedState: " + optimizedState.angle.getDegrees() );
-
-        count = 0;
-        }
-        count += 1;
-
         OI.swervevalues.CanCoder = getCanCoder().getRotations();
         OI.swervevalues.RotMotorEncoder = getAngle().getRotations();
         OI.swervevalues.desiredState = desiredState.angle.getRotations();
 
-
-        
         setAngle(desiredState);
         //setSpeed(desiredState, isOpenLoop);
+
+        Target = optimizedState;
     }
 
-
-
-    // works well 
     private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop){
         if(isOpenLoop){
             double output = desiredState.speedMetersPerSecond / kSwerve.MaxSpeedMetersPerSecond;
@@ -90,41 +71,15 @@ public class MK4I {
         }
     }
 
-//Dont know if it will work
+//works now okayly good 
     private void setAngle(SwerveModuleState optimizedState){
-
-        // if(Math.abs(optimizedState.speedMetersPerSecond) <= (kSwerve.MaxSpeedMetersPerSecond) * 0.01){
-        //     angle = lastangle;
-        // // }
-        // // else{
-        //     angle = optimizedState.angle.getRotations() * (150/7);
-        // //}
-
-        // RotationController.setReference(angle, CANSparkMax.ControlType.kPosition);
-
-        // lastangle = getAngle().getRotations() * (150/7);
-
-
-        
-        OI.swervevalues.positionErrorEntry.setDouble(RotationController.getPositionError());
-        if(Math.abs(optimizedState.speedMetersPerSecond) <= (kSwerve.MaxSpeedMetersPerSecond) * 0.01){
-            angle = lastangle;
-            //RotationMotor.set(0);
-        }
-        else{
-            angle = optimizedState.angle.getDegrees();
-            RotationMotor.set(RotationController.calculate(getCanCoder().getDegrees(), angle));
-        }
-
-        lastangle = getCanCoder().getDegrees();
+        RotationController.setReference(optimizedState.angle.minus(new Rotation2d(angleOffset)).getRotations(),
+        ControlType.kPosition);
     }
 
-
-    private void resetToAbsolute(){
-        double absolutePosition =  getCanCoder().getRotations() - angleOffset.getRotations();
-        RotationEncoder.setPosition(absolutePosition);
+    private Rotation2d GetSteerAng(){
+       return new Rotation2d(CANcoder.getAbsolutePosition() + angleOffset);
     }
-
 
     private void configDrive(int driveID){
         DriveMotor = new CANSparkMax(driveID, MotorType.kBrushless);
@@ -137,9 +92,9 @@ public class MK4I {
         DriveMotor.setIdleMode(IdleMode.kBrake);
         DriveEncoder.setVelocityConversionFactor(kSwerve.DriveVelocityConversionFactor);
         DriveEncoder.setPositionConversionFactor(kSwerve.DrivePositionCoversionFactor);
-        DriveController.setP(0.1);
-        DriveController.setI(0);
-        DriveController.setD(0);
+        DriveController.setP(0.1); //0.1
+        DriveController.setI(0); //0.15
+        DriveController.setD(0); //0
         DriveController.setFF(0);
         DriveMotor.enableVoltageCompensation(12);
         DriveMotor.burnFlash();
@@ -148,28 +103,19 @@ public class MK4I {
 
     private void configRotation(int RotationID){
         RotationMotor = new CANSparkMax(RotationID, MotorType.kBrushless);
-        
         RotationEncoder = RotationMotor.getEncoder();
         RotationMotor.restoreFactoryDefaults();
-        // RotationMotor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 10);
-        // RotationMotor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus1, 20);
-        // RotationMotor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus2, 50);
-
         RotationMotor.setSmartCurrentLimit(20);
         RotationMotor.setInverted(true);
         RotationMotor.setIdleMode(IdleMode.kBrake);
-        RotationEncoder.setPositionConversionFactor(1.0);
-        //RotationController = RotationMotor.getPIDController();
-        RotationController = new PIDController(0.1, 0.01, 0.0); // p 0.025 i 0.01
-
-
-        RotationController.enableContinuousInput(-Math.PI, Math.PI);
-        // RotationController.setPositionPIDWrappingEnabled(true);
-        
-        // RotationController.setPositionPIDWrappingMaxInput(2*Math.PI);
-        // RotationController.setPositionPIDWrappingMinInput(0);
-
-        //RotationMotor.enableVoltageCompensation(12);
+        RotationController = RotationMotor.getPIDController();
+        RotationController.setP(1); //1
+        RotationController.setI(0); //0
+        RotationController.setD(0.1); //0.2
+        RotationController.setPositionPIDWrappingEnabled(true);
+        RotationController.setPositionPIDWrappingMaxInput(2*Math.PI);
+        RotationController.setPositionPIDWrappingMinInput(0);
+        RotationMotor.enableVoltageCompensation(12);
         RotationMotor.burnFlash();
     }
 
@@ -182,21 +128,23 @@ public class MK4I {
     }
 
     public Rotation2d getAngle(){
-        return Rotation2d.fromRotations(RotationEncoder.getPosition()* 7/150);
+        return Rotation2d.fromRotations(RotationEncoder.getPosition());
     }
 
     public Rotation2d getCanCoder(){
-        //return Rotation2d.fromRotations(RotationEncoder.getPosition() * 7/150);
-
         return Rotation2d.fromDegrees(CANcoder.getAbsolutePosition()); 
     }
 
     public SwerveModuleState getState(){
-        return new SwerveModuleState(DriveEncoder.getVelocity(), getAngle());
+        return new SwerveModuleState(DriveEncoder.getVelocity(), GetSteerAng());
+    }
+
+    public SwerveModuleState getTarget(){
+        return Target;
     }
 
     public SwerveModulePosition getPosition(){
-        return new SwerveModulePosition(DriveEncoder.getPosition(), getAngle());
+        return new SwerveModulePosition(DriveEncoder.getPosition(), GetSteerAng());
     }
 
 }
