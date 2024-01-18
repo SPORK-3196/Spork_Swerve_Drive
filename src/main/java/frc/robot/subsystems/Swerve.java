@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import java.util.function.DoubleSupplier;
 
+import com.kauailabs.navx.frc.AHRS;
+
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -10,6 +12,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.SerialPort.Port;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -19,28 +22,34 @@ public class Swerve extends SubsystemBase {
     
 
     public Module FL = new Module(constants.frontLeftSteer,
+    constants.frontLeftDrive,
     constants.kFrontLeftDriveAbsoluteEncoderPort,
     0);
     public Module FR = new Module(constants.frontRightSteer,
+    constants.frontRightDrive,
     constants.kFrontRightDriveAbsoluteEncoderPort,
     0);
     public Module BL = new Module(constants.backLeftSteer,
+    constants.backLeftDrive,
     constants.kBackLeftDriveAbsoluteEncoderPort,
     0);
     public Module BR = new Module(constants.backRightSteer,
+    constants.backRightDrive,
     constants.kBackRightDriveAbsoluteEncoderPort,
     0);
 
     
 
-
+    public AHRS gyro;
     private SwerveDrivePoseEstimator Pose;
     private ChassisSpeeds speeds;
 
     public Swerve(){
 
+        gyro = new AHRS(Port.kMXP);
+        gyro.zeroYaw();
         Pose = new SwerveDrivePoseEstimator(constants.kinematics,
-        gyroAngle(),
+        new Rotation2d(gyro.getAngle()),
         new SwerveModulePosition[]{
             FL.getPosition(),
             FR.getPosition(),
@@ -52,7 +61,12 @@ public class Swerve extends SubsystemBase {
     }
 
     public Rotation2d gyroAngle(){
-        return new Rotation2d(0);
+        return new Rotation2d(gyro.getAngle());
+    }
+
+    public Rotation2d gyroRate(){
+        return new Rotation2d(gyro.getRate());
+        // Degrees/sec
     }
 
     public void Drive(ChassisSpeeds dSpeeds){
@@ -108,7 +122,7 @@ public class Swerve extends SubsystemBase {
     }
 
     private ChassisSpeeds toField(ChassisSpeeds speeds){
-        return new ChassisSpeeds(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond);
+        return ChassisSpeeds.fromFieldRelativeSpeeds(speeds, gyroAngle());
     }
 
     @Override
