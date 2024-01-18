@@ -38,7 +38,7 @@ public class Module extends SubsystemBase{
         absoluteEncoder = new CANCoder(absoluteEncoderID);
         absoluteEncoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
         absoluteEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
-        AzumuthPID = new PIDController(0.5, 0, 0);
+        AzumuthPID = new PIDController(1, 0, 0);
         //azumuthEncoder.setPositionConversionFactor(150/7);
         AzumuthPID.enableContinuousInput(0, 1);
     }
