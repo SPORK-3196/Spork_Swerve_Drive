@@ -31,6 +31,12 @@ public class constants {
         public static int kBackLeftDriveAbsoluteEncoderPort = 3;
         public static int kFrontRightDriveAbsoluteEncoderPort = 4;
         public static int kBackRightDriveAbsoluteEncoderPort = 1;
+
+        // Swerve module Offsets
+        public static double FlOffset = Units.rotationsToDegrees(0);  // from offset in rotations
+        public static double FrOffset = Units.rotationsToDegrees(0);  //  if in degrees remove and put the raw degree offset
+        public static double BlOffset = Units.rotationsToDegrees(0);
+        public static double BrOffset = Units.rotationsToDegrees(0);
         
 
         public static final SwerveDriveKinematics kinematics =

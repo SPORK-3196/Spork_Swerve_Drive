@@ -17,6 +17,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.constants;
 
 public class Module extends SubsystemBase{
 
@@ -33,6 +34,7 @@ public class Module extends SubsystemBase{
         0.02);
 
     public AbsoluteEncoder azumuthEncoder;
+    public RelativeEncoder DriveEncoder;
 
     public CANCoder absoluteEncoder;
 
@@ -51,6 +53,7 @@ public class Module extends SubsystemBase{
         absoluteEncoder = new CANCoder(absoluteEncoderID);
         absoluteEncoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
         absoluteEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
+        absoluteEncoder.configMagnetOffset(offset); // in Degrees
         
         AzumuthPID = new PIDController(1, 0, 0);
         AzumuthPID.enableContinuousInput(0, 1);
@@ -60,7 +63,7 @@ public class Module extends SubsystemBase{
 
         dState = SwerveModuleState.optimize(dState, getCANangle());
 
-        DriveNEO.set(OpenLoopFF.calculate(dState.speedMetersPerSecond));
+        //DriveNEO.set(OpenLoopFF.calculate(dState.speedMetersPerSecond));
 
         var out = AzumuthPID.calculate(getCANangle().getRotations(), dState.angle.getRotations());
 
@@ -83,11 +86,16 @@ public class Module extends SubsystemBase{
     }
 
     public SwerveModulePosition getPosition(){
-        return new SwerveModulePosition(0, getCANangle());
+        return new SwerveModulePosition(DriveEncoder.getPosition(), getCANangle());
     }
 
     public SwerveModuleState getstate(){
-        return new SwerveModuleState(0, getCANangle());
+        return new SwerveModuleState(RPM_TO_M_per_S(DriveEncoder.getVelocity()), getCANangle());
+    }
+
+    private double RPM_TO_M_per_S(double RPM){
+        var velocity = (((2 * Math.PI) * (constants.wheelDiameter /2 )) / 60) * RPM;
+        return velocity;
     }
 
 }

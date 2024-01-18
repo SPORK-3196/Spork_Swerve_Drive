@@ -24,21 +24,19 @@ public class Swerve extends SubsystemBase {
     public Module FL = new Module(constants.frontLeftSteer,
     constants.frontLeftDrive,
     constants.kFrontLeftDriveAbsoluteEncoderPort,
-    0);
+    constants.FlOffset);
     public Module FR = new Module(constants.frontRightSteer,
     constants.frontRightDrive,
     constants.kFrontRightDriveAbsoluteEncoderPort,
-    0);
+    constants.FrOffset);
     public Module BL = new Module(constants.backLeftSteer,
     constants.backLeftDrive,
     constants.kBackLeftDriveAbsoluteEncoderPort,
-    0);
+    constants.BlOffset);
     public Module BR = new Module(constants.backRightSteer,
     constants.backRightDrive,
     constants.kBackRightDriveAbsoluteEncoderPort,
-    0);
-
-    
+    constants.BrOffset);
 
     public AHRS gyro;
     private SwerveDrivePoseEstimator Pose;
@@ -48,6 +46,7 @@ public class Swerve extends SubsystemBase {
 
         gyro = new AHRS(Port.kMXP);
         gyro.zeroYaw();
+        
         Pose = new SwerveDrivePoseEstimator(constants.kinematics,
         new Rotation2d(gyro.getAngle()),
         new SwerveModulePosition[]{
