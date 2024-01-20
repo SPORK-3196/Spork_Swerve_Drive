@@ -21,7 +21,8 @@ import frc.robot.constants;
 
 public class Module extends SubsystemBase{
 
-    public SwerveModuleState State; 
+    public SwerveModuleState State;
+    private Rotation2d offset;
     
     public PIDController AzumuthPID; 
 
@@ -33,12 +34,13 @@ public class Module extends SubsystemBase{
         1,
         0.02);
 
-    public AbsoluteEncoder azumuthEncoder;
     public RelativeEncoder DriveEncoder;
 
     public CANCoder absoluteEncoder;
 
-    public Module(int TurnNeoID, int DriveID, int absoluteEncoderID, double offset){
+    public Module(int TurnNeoID, int DriveID, int absoluteEncoderID, Rotation2d offset){
+        
+        this.offset = offset;
         State = new SwerveModuleState();
         
         AzumuthNEO = new CANSparkMax(TurnNeoID, MotorType.kBrushless);
@@ -50,14 +52,12 @@ public class Module extends SubsystemBase{
         
         DriveEncoder = DriveNEO.getEncoder();
         DriveEncoder.setPosition(0);
-
-        azumuthEncoder = AzumuthNEO.getAbsoluteEncoder(Type.kDutyCycle);
         
         absoluteEncoder = new CANCoder(absoluteEncoderID);
         absoluteEncoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
         absoluteEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
-        absoluteEncoder.configMagnetOffset(offset); // in Degrees
         
+    
         AzumuthPID = new PIDController(1, 0, 0);
         AzumuthPID.enableContinuousInput(0, 1);
     }
@@ -69,9 +69,13 @@ public class Module extends SubsystemBase{
         //DriveNEO.set(OpenLoopFF.calculate(dState.speedMetersPerSecond));
 
         var out = AzumuthPID.calculate(getCANangle().getRotations(), dState.angle.getRotations());
-
-        AzumuthNEO.set(out);
         
+        // if(Math.abs(dState.speedMetersPerSecond) > constants.MaxSpeed * 0.01){
+            AzumuthNEO.set(out);
+        // } else{
+        //     AzumuthNEO.set(0);
+        // }
+    
         //SmartDashboard.putNumber("CAN angle", getCANangle().getDegrees());
         //SmartDashboard.putNumber("motor encoder", getMotorAng().getDegrees());
         //SmartDashboard.putNumber("setpoint in Deg", dState.angle.getDegrees());
@@ -82,10 +86,6 @@ public class Module extends SubsystemBase{
 
     public Rotation2d getCANangle(){
         return Rotation2d.fromDegrees(absoluteEncoder.getPosition());
-    }
-
-    public Rotation2d getMotorAng(){
-        return Rotation2d.fromRotations(azumuthEncoder.getPosition());
     }
 
     public SwerveModulePosition getPosition(){

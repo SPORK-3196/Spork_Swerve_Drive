@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
@@ -11,6 +12,7 @@ public class constants {
     
     public static final double kDeadband = 0.01;
 
+        public static final double MaxSpeed = 1;
         public static final double wheelDiameter = Units.inchesToMeters(4.0);
         public static final double WheelCircumference = wheelDiameter * Math.PI;
         public static final double RotationGearRatio = (150/7)/1;
@@ -33,10 +35,10 @@ public class constants {
         public static int kBackRightDriveAbsoluteEncoderPort = 1;
 
         // Swerve module Offsets
-        public static double FlOffset = 261.211;
-        public static double FrOffset = 113.467;
-        public static double BlOffset = 31.377;
-        public static double BrOffset = 346.553;
+        public static Rotation2d FlOffset = Rotation2d.fromDegrees(86.924);
+        public static Rotation2d FrOffset = Rotation2d.fromDegrees(227.637);
+        public static Rotation2d BlOffset = Rotation2d.fromDegrees(37.354);
+        public static Rotation2d BrOffset = Rotation2d.fromDegrees(195.996);
         
 
         public static final SwerveDriveKinematics kinematics =
