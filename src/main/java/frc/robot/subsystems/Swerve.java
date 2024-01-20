@@ -43,9 +43,7 @@ public class Swerve extends SubsystemBase {
     private ChassisSpeeds speeds;
 
     public Swerve(){
-
         gyro = new AHRS(Port.kMXP);
-        gyro.zeroYaw();
         
         Pose = new SwerveDrivePoseEstimator(constants.kinematics,
         new Rotation2d(gyro.getAngle()),
@@ -126,9 +124,9 @@ public class Swerve extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("rotation Speed", speeds.omegaRadiansPerSecond);
-        SmartDashboard.putNumber("translation Speed", speeds.vxMetersPerSecond);
-        SmartDashboard.putNumber("strafe speeds", speeds.vyMetersPerSecond);
+        //SmartDashboard.putNumber("rotation Speed", speeds.omegaRadiansPerSecond);
+        //SmartDashboard.putNumber("translation Speed", speeds.vxMetersPerSecond);
+        //SmartDashboard.putNumber("strafe speeds", speeds.vyMetersPerSecond);
     }
 
     public Pose2d getPose(){
@@ -146,9 +144,9 @@ public class Swerve extends SubsystemBase {
 
     public void setStates(SwerveModuleState[] state){
         FL.setState(state[0]);
-        // FR.setState(state[1]);
-        // BL.setState(state[2]);
-        // BR.setState(state[3]);
+        FR.setState(state[1]);
+        BL.setState(state[2]);
+        BR.setState(state[3]);
     }
 
 

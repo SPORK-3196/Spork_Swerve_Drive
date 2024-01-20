@@ -48,6 +48,9 @@ public class Module extends SubsystemBase{
         DriveNEO = new CANSparkMax(DriveID, MotorType.kBrushless);
         DriveNEO.setIdleMode(IdleMode.kBrake);
         
+        DriveEncoder = DriveNEO.getEncoder();
+        DriveEncoder.setPosition(0);
+
         azumuthEncoder = AzumuthNEO.getAbsoluteEncoder(Type.kDutyCycle);
         
         absoluteEncoder = new CANCoder(absoluteEncoderID);
@@ -69,10 +72,10 @@ public class Module extends SubsystemBase{
 
         AzumuthNEO.set(out);
         
-        SmartDashboard.putNumber("CAN angle", getCANangle().getDegrees());
-        SmartDashboard.putNumber("motor encoder", getMotorAng().getDegrees());
-        SmartDashboard.putNumber("setpoint in Deg", dState.angle.getDegrees());
-        SmartDashboard.putNumber("Azumuth PID out", out);
+        //SmartDashboard.putNumber("CAN angle", getCANangle().getDegrees());
+        //SmartDashboard.putNumber("motor encoder", getMotorAng().getDegrees());
+        //SmartDashboard.putNumber("setpoint in Deg", dState.angle.getDegrees());
+        //SmartDashboard.putNumber("Azumuth PID out", out);
 
         State = dState;
     }
