@@ -56,7 +56,7 @@ public class Module extends SubsystemBase{
         absoluteEncoder = new CANCoder(absoluteEncoderID);
         absoluteEncoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
         absoluteEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
-        
+        absoluteEncoder.setPositionToAbsolute();
     
         AzumuthPID = new PIDController(1, 0, 0);
         AzumuthPID.enableContinuousInput(0, 1);
@@ -66,26 +66,22 @@ public class Module extends SubsystemBase{
 
         dState = SwerveModuleState.optimize(dState, getCANangle());
 
-        //DriveNEO.set(OpenLoopFF.calculate(dState.speedMetersPerSecond));
+        DriveNEO.set(OpenLoopFF.calculate(dState.speedMetersPerSecond));
 
         var out = AzumuthPID.calculate(getCANangle().getRotations(), dState.angle.getRotations());
         
         // if(Math.abs(dState.speedMetersPerSecond) > constants.MaxSpeed * 0.01){
             AzumuthNEO.set(out);
-        // } else{
-        //     AzumuthNEO.set(0);
-        // }
-    
-        //SmartDashboard.putNumber("CAN angle", getCANangle().getDegrees());
-        //SmartDashboard.putNumber("motor encoder", getMotorAng().getDegrees());
-        //SmartDashboard.putNumber("setpoint in Deg", dState.angle.getDegrees());
-        //SmartDashboard.putNumber("Azumuth PID out", out);
+
 
         State = dState;
     }
 
     public Rotation2d getCANangle(){
-        return Rotation2d.fromDegrees(absoluteEncoder.getPosition());
+        return Rotation2d.fromDegrees(absoluteEncoder.getAbsolutePosition() - offset.getDegrees());
+    }
+    public Rotation2d getCANforshuffle(){
+        return Rotation2d.fromDegrees(absoluteEncoder.getAbsolutePosition() - offset.getDegrees());
     }
 
     public SwerveModulePosition getPosition(){

@@ -13,6 +13,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.SerialPort.Port;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -21,19 +22,19 @@ import frc.robot.constants;
 public class Swerve extends SubsystemBase {
     
 
-    public Module FL = new Module(constants.frontLeftSteer,
+    public static Module FL = new Module(constants.frontLeftSteer,
     constants.frontLeftDrive,
     constants.kFrontLeftDriveAbsoluteEncoderPort,
     constants.FlOffset);
-    public Module FR = new Module(constants.frontRightSteer,
+    public static Module FR = new Module(constants.frontRightSteer,
     constants.frontRightDrive,
     constants.kFrontRightDriveAbsoluteEncoderPort,
     constants.FrOffset);
-    public Module BL = new Module(constants.backLeftSteer,
+    public static Module BL = new Module(constants.backLeftSteer,
     constants.backLeftDrive,
     constants.kBackLeftDriveAbsoluteEncoderPort,
     constants.BlOffset);
-    public Module BR = new Module(constants.backRightSteer,
+    public static Module BR = new Module(constants.backRightSteer,
     constants.backRightDrive,
     constants.kBackRightDriveAbsoluteEncoderPort,
     constants.BrOffset);
@@ -68,7 +69,7 @@ public class Swerve extends SubsystemBase {
 
     public void Drive(ChassisSpeeds dSpeeds){
         var targetStates = constants.kinematics.toSwerveModuleStates(dSpeeds);
-        SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, 1);
+        SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, constants.MaxSpeed);
 
         setStates(targetStates);
 
@@ -122,13 +123,6 @@ public class Swerve extends SubsystemBase {
         return ChassisSpeeds.fromFieldRelativeSpeeds(speeds, gyroAngle());
     }
 
-    @Override
-    public void periodic() {
-        //SmartDashboard.putNumber("rotation Speed", speeds.omegaRadiansPerSecond);
-        //SmartDashboard.putNumber("translation Speed", speeds.vxMetersPerSecond);
-        //SmartDashboard.putNumber("strafe speeds", speeds.vyMetersPerSecond);
-    }
-
     public Pose2d getPose(){
         return Pose.getEstimatedPosition();
     }
@@ -147,6 +141,7 @@ public class Swerve extends SubsystemBase {
         FR.setState(state[1]);
         BL.setState(state[2]);
         BR.setState(state[3]);
+
     }
 
 
