@@ -7,12 +7,12 @@ import edu.wpi.first.math.util.Units;
 
 public class constants {
 
-    private static final double DRIVETRAIN_WHEELBASE_METERS = Units.inchesToMeters(25);
-    private static final double DRIVETRAIN_TRACKWIDTH_METERS = Units.inchesToMeters(25);
+    private static final double DRIVETRAIN_WHEELBASE_METERS = Units.inchesToMeters(24);
+    private static final double DRIVETRAIN_TRACKWIDTH_METERS = Units.inchesToMeters(24);
     
-    public static final double kDeadband = 0.01;
+    public static final double kDeadband = 0.1;
 
-        public static final double MaxSpeed = 0.2;  // m/s
+        public static final double MaxSpeed = 0.8;  // m/s
         public static final double wheelDiameter = Units.inchesToMeters(4.0);
         public static final double WheelCircumference = wheelDiameter * Math.PI;
         public static final double RotationGearRatio = (150/7)/1;

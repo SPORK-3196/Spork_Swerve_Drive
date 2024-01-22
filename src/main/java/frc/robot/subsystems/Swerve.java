@@ -2,8 +2,6 @@ package frc.robot.subsystems;
 
 import java.util.function.DoubleSupplier;
 
-import com.kauailabs.navx.frc.AHRS;
-
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -12,14 +10,9 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.I2C;
-import edu.wpi.first.wpilibj.SerialPort;
-import edu.wpi.first.wpilibj.SerialPort.Port;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
-import frc.robot.RobotContainer;
 import frc.robot.constants;
 
 public class Swerve extends SubsystemBase {
@@ -46,9 +39,8 @@ public class Swerve extends SubsystemBase {
     private ChassisSpeeds speeds;
 
     public Swerve(){
-        
         Pose = new SwerveDrivePoseEstimator(constants.kinematics,
-        new Rotation2d(Robot.gyro.getYaw()),
+        new Rotation2d(gyroAngle().getDegrees()),
         new SwerveModulePosition[]{
             FL.getPosition(),
             FR.getPosition(),
@@ -60,8 +52,14 @@ public class Swerve extends SubsystemBase {
     }
 
     public Rotation2d gyroAngle(){
-        return new Rotation2d(Robot.gyro.getYaw());
+        return Robot.gyro.getRotation2d();
     }
+
+
+    @Override
+    public void periodic(){
+        Pose.update(gyroAngle(), getPositions());
+    }  
 
     public void ZeroGyro(){
         Robot.gyro.reset();
@@ -77,8 +75,6 @@ public class Swerve extends SubsystemBase {
         SwerveDriveKinematics.desaturateWheelSpeeds(targetStates, constants.MaxSpeed);
 
         setStates(targetStates);
-
-        speeds = dSpeeds;
     }
 
 
@@ -86,16 +82,13 @@ public class Swerve extends SubsystemBase {
     DoubleSupplier translation,
     DoubleSupplier strafe,
     DoubleSupplier rotation){
-
         return this.run(
             () -> 
-            Drive(toField(
-                Joystickcontrol(
+            Drive(Joystickcontrol(
                 translation.getAsDouble(),
                 strafe.getAsDouble(),
                 rotation.getAsDouble())
-            ))
-
+            )
         );
     }
 
@@ -108,19 +101,12 @@ public class Swerve extends SubsystemBase {
         if(Math.abs(Y) <= constants.kDeadband) Y = 0;
         if(Math.abs(z) <= constants.kDeadband) z = 0;
 
-
         x = Math.copySign(x*x, x);
         Y = Math.copySign(Y*Y, Y);
         z = Math.copySign(z*z, z);
 
-        var transVelocety = VecBuilder.fill(x, Y);
+        speeds = new ChassisSpeeds(x * constants.MaxSpeed, Y * constants.MaxSpeed, z);
 
-        transVelocety = transVelocety.times(1);
-
-        return new ChassisSpeeds(transVelocety.get(0, 0), transVelocety.get(1, 0), z);
-    }
-
-    private ChassisSpeeds toField(ChassisSpeeds speeds){
         return ChassisSpeeds.fromFieldRelativeSpeeds(speeds, gyroAngle());
     }
 
@@ -134,6 +120,15 @@ public class Swerve extends SubsystemBase {
             FR.getstate(),
             BL.getstate(),
             BR.getstate()
+        };
+    }
+
+    public SwerveModulePosition[] getPositions(){
+        return new SwerveModulePosition[]{
+            FL.getPosition(),
+            FR.getPosition(),
+            BL.getPosition(),
+            BR.getPosition()
         };
     }
 

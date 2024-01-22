@@ -3,19 +3,15 @@ package frc.robot.subsystems;
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
-import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-import com.revrobotics.SparkMaxAbsoluteEncoder.Type;
-
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants;
 
@@ -31,7 +27,7 @@ public class Module extends SubsystemBase{
 
     private SimpleMotorFeedforward OpenLoopFF = new SimpleMotorFeedforward(
         0,
-        1,
+        0.5,
         0.02);
 
     public RelativeEncoder DriveEncoder;
@@ -49,6 +45,8 @@ public class Module extends SubsystemBase{
 
         DriveNEO = new CANSparkMax(DriveID, MotorType.kBrushless);
         DriveNEO.setIdleMode(IdleMode.kBrake);
+        DriveNEO.setSmartCurrentLimit(15);
+        DriveNEO.enableVoltageCompensation(12);
         
         DriveEncoder = DriveNEO.getEncoder();
         DriveEncoder.setPosition(0);
@@ -58,7 +56,7 @@ public class Module extends SubsystemBase{
         absoluteEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
         absoluteEncoder.setPositionToAbsolute();
     
-        AzumuthPID = new PIDController(1, 0, 0);
+        AzumuthPID = new PIDController(2, 0, 0);
         AzumuthPID.enableContinuousInput(0, 1);
     }
 
@@ -68,16 +66,12 @@ public class Module extends SubsystemBase{
 
         DriveNEO.set(OpenLoopFF.calculate(dState.speedMetersPerSecond));
 
+        if(Math.abs(dState.speedMetersPerSecond) > constants.MaxSpeed*0.01){
         var out = AzumuthPID.calculate(getCANangle().getRotations(), dState.angle.getRotations());
-        
-        if(dState.speedMetersPerSecond > constants.MaxSpeed * 0.1){
-            AzumuthNEO.set(out);
-        }
-        else{
+        AzumuthNEO.set(out);
+        }else{
             AzumuthNEO.set(0);
         }
-
-        State = dState;
     }
 
     public Rotation2d getCANangle(){
@@ -86,7 +80,6 @@ public class Module extends SubsystemBase{
     public Rotation2d getCANforshuffle(){
         return Rotation2d.fromDegrees(absoluteEncoder.getAbsolutePosition() - offset.getDegrees());
     }
-
     public SwerveModulePosition getPosition(){
         return new SwerveModulePosition(DriveEncoder.getPosition(), getCANangle());
     }
