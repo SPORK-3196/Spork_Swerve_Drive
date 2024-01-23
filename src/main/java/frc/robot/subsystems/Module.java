@@ -70,9 +70,12 @@ public class Module extends SubsystemBase{
 
         var out = AzumuthPID.calculate(getCANangle().getRotations(), dState.angle.getRotations());
         
-        // if(Math.abs(dState.speedMetersPerSecond) > constants.MaxSpeed * 0.01){
+        if(dState.speedMetersPerSecond > constants.MaxSpeed * 0.1){
             AzumuthNEO.set(out);
-
+        }
+        else{
+            AzumuthNEO.set(0);
+        }
 
         State = dState;
     }

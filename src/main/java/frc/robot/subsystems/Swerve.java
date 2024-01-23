@@ -12,11 +12,14 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.SerialPort.Port;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
+import frc.robot.RobotContainer;
 import frc.robot.constants;
 
 public class Swerve extends SubsystemBase {
@@ -39,15 +42,13 @@ public class Swerve extends SubsystemBase {
     constants.kBackRightDriveAbsoluteEncoderPort,
     constants.BrOffset);
 
-    public AHRS gyro;
     private SwerveDrivePoseEstimator Pose;
     private ChassisSpeeds speeds;
 
     public Swerve(){
-        gyro = new AHRS(Port.kMXP);
         
         Pose = new SwerveDrivePoseEstimator(constants.kinematics,
-        new Rotation2d(gyro.getAngle()),
+        new Rotation2d(Robot.gyro.getYaw()),
         new SwerveModulePosition[]{
             FL.getPosition(),
             FR.getPosition(),
@@ -59,11 +60,15 @@ public class Swerve extends SubsystemBase {
     }
 
     public Rotation2d gyroAngle(){
-        return new Rotation2d(gyro.getAngle());
+        return new Rotation2d(Robot.gyro.getYaw());
+    }
+
+    public void ZeroGyro(){
+        Robot.gyro.reset();
     }
 
     public Rotation2d gyroRate(){
-        return new Rotation2d(gyro.getRate());
+        return new Rotation2d(Robot.gyro.getRate());
         // Degrees/sec
     }
 
@@ -92,9 +97,6 @@ public class Swerve extends SubsystemBase {
             ))
 
         );
-
-
-
     }
 
     private ChassisSpeeds Joystickcontrol(
@@ -116,7 +118,6 @@ public class Swerve extends SubsystemBase {
         transVelocety = transVelocety.times(1);
 
         return new ChassisSpeeds(transVelocety.get(0, 0), transVelocety.get(1, 0), z);
-        
     }
 
     private ChassisSpeeds toField(ChassisSpeeds speeds){
@@ -141,9 +142,6 @@ public class Swerve extends SubsystemBase {
         FR.setState(state[1]);
         BL.setState(state[2]);
         BR.setState(state[3]);
-
     }
-
-
 
 }
